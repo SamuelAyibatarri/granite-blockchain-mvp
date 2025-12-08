@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",            
+    "outDir": "./dist",              
+    "moduleResolution": "node",       
+    "esModuleInterop": true,          
+    "forceConsistentCasingInFileNames": true, 
+
+    "rootDir": "./src",
+    "target": "es2020",               
+    "lib": ["es2020"],               
+    "types": ["node"],
+
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    "strict": true,
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": false,   
+    "isolatedModules": false,         
+    "noUncheckedSideEffectImports": true, 
+    "moduleDetection": "force",       
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true
+  },
+  "include": ["src/**/*"],            
+  "exclude": ["node_modules", "dist"] 
+}
