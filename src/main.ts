@@ -30,7 +30,7 @@ const NATIVE_TOKEN: Token = {
 // Initializing elliptic curve using secp256k 1
 const ellipticCurve = new ec('secp256k1');
 
-const genesisBlock: Block = new Block(0, 'aeebad4a796fcc2e15dc4c6061b45ed9b373f26adfc798ca7d2d8cc58182718e', 'null', 1465154705, 1, 1, genesisSender, 'accumulator', mockTransactionData[0]);
+const genesisBlock: Block = new Block(0, 'aeebad4a796fcc2e15dc4c6061b45ed9b373f26adfc798ca7d2d8cc58182718e', 'null', 1465154705, 1, 1, genesisSender, 'accumulator', mockTransactionData[0] as VerifiedTransaction<AddressInterface | AddressClass>);
 
 const calculateHash = (
   index: number,
@@ -48,7 +48,7 @@ const calculateHash = (
 };
 
 const calculateHashForBlock = (block: Block): string => {
-  const hash = calculateHash(block.index, block.previousHash, block.timestamp, block.difficulty, block.minterAddress, block.minterBalance, block.data[0]); /// -> For now the block hash is calculated only using the first transaction just to deal with any errors for now
+  const hash = calculateHash(block.index, block.previousHash, block.timestamp, block.difficulty, block.minterAddress, block.minterBalance, block.transaction); /// -> For now the block hash is calculated only using the first transaction just to deal with any errors for now
   return hash;
 }
 
@@ -74,16 +74,16 @@ function getLatestBlock(): Block {
     txSecretDiff: 8,
     nonce: 432
   }
-  const randomBlock = new Block(5, '', '', 89, 1, 1, genesisSender, 'accumulator', mockTransactionData)
+  const randomBlock = new Block(5, '', '', 89, 1, 1, genesisSender, 'accumulator', mockTransactionData[0] as VerifiedTransaction<AddressInterface | AddressClass>)
   return randomBlock;
 }
 
-const generateNextBlock = (blockData: Transaction): Block => {
+const generateNextBlock = (data: VerifiedTransaction): Block => {
   const previousBlock: Block = getLatestBlock();
   const nextIndex: number = previousBlock.index + 1;
   const nextTimestamp: number = new Date().getTime() / 1000;
-  const nextHash: string = calculateHash(nextIndex, previousBlock.hash, nextTimestamp, 7, genesisSender, genesisSender.balance, blockData); /// Don't forget to change later, also modify the calculateHash function
-  const newBlock: Block = new Block(nextIndex, nextHash, previousBlock.hash, nextTimestamp, 7, genesisSender.balance, genesisSender, "root", blockData);
+  const nextHash: string = calculateHash(nextIndex, previousBlock.hash, nextTimestamp, 7, genesisSender, genesisSender.balance, data); /// Don't forget to change later, also modify the calculateHash function
+  const newBlock: Block = new Block(nextIndex, nextHash, previousBlock.hash, nextTimestamp, 7, genesisSender.balance, genesisSender, "root", data);
   return newBlock;
 }
 

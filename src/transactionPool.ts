@@ -3,7 +3,7 @@ import { readFile } from "./util"
 import { UNVERIFIED_TRANSACTIONS_PATH } from "./constants.js";
 
 export function getUnverifiedTransactionPool(): Interfaces.Transaction<Interfaces.AddressInterface>[] {
-  const data = readFile(UNVERIFIED_TRANSACTIONS_PATH) as Interfaces.UnverifiedTransactionPoolInterface;
+  const data = readFile(UNVERIFIED_TRANSACTIONS_PATH, "UTP") as Interfaces.UnverifiedTransactionPoolInterface;
   if (!data) throw new Error("An error occured");
   return data.pool as Interfaces.Transaction<Interfaces.AddressInterface>[];
 };

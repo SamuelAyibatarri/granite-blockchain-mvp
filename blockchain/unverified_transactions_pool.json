@@ -1,0 +1,34 @@
+{
+  "pool": [
+    {
+      "sender": {
+        "publicKeyHex": "049a68bf92a1967a3e3fc7363e8cb164c99ad08a49d914dfc736e540af1cd9481ffc19d5c04560c3361541ed1bc7c80fa41a136e6d9a848b827d274d5d3ea64c12",
+        "nonce": 650652,
+        "balance": 694
+      },
+      "recipient": {
+        "publicKeyHex": "AD_d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+        "balance": 51,
+        "nonce": 5653.872016754047
+      },
+      "token": {
+        "tokenId": "d",
+        "name": "granite",
+        "contractAddress": "s",
+        "ticker": "gran",
+        "totalSupply": 1000000000,
+        "circulatingSupply": 10
+      },
+      "value": 50,
+      "gasfee": 1,
+      "txHash": "78ef17a6b85fa34d50f713e097ea88bdf2089b35d7f77884fcf15b5cd874a895",
+      "signature": {
+        "r": "26b70fbfc8ea1d4c3cc0f34a5ea0f8093f33a23fb4ee2a80d677b27ac2a7777",
+        "s": "a1b1b165e4db8147371ed2dd0a74ba185a0a0bcbd3281291795028ec6518046"
+      },
+      "txSecret": "b8da3458ec5f08e89822e099bbcbc4a3e3673c26bf1d14e398f9373bb49daf67",
+      "txSecretDiff": 4,
+      "nonce": 789
+    }
+  ]
+}

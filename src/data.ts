@@ -1,5 +1,5 @@
 import { NATIVE_TOKEN } from './constants'
-import type { AddressInterface, Transaction, TransactionData } from './interfaces'
+import type { AddressInterface, Transaction} from './interfaces'
 
 export const genesisSender: AddressInterface = {
   publicKeyHex: 'AD_6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b',
@@ -26,7 +26,7 @@ export const genesisTx: Transaction<AddressInterface> = {
   nonce: 120
 }
 
-export const mockTransactionData: TransactionData = [
+export const mockTransactionData: Transaction[] = [
   genesisTx,
   {
     sender: { publicKeyHex: 'AD_a1b2c3d4e5f6', balance: 100, nonce: 123 },

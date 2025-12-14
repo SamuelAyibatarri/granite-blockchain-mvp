@@ -722,7 +722,7 @@
     "privateKeyHex": "f8ff9d7a59958c36be56f38dbbcbaa1b53f5b02f60054bde61d7a5bec6a31ed9",
     "address": {
       "publicKeyHex": "049a68bf92a1967a3e3fc7363e8cb164c99ad08a49d914dfc736e540af1cd9481ffc19d5c04560c3361541ed1bc7c80fa41a136e6d9a848b827d274d5d3ea64c12",
-      "balance": 949,
+      "balance": 694,
       "nonce": 650652
     }
   },
@@ -811,6 +811,156 @@
         },
         "txSecret": "7888dff662f1a04c52fd49bdb00abdea9a7ef62715675305b69ddd95450b93d0",
         "txSecretDiff": 4
+      },
+      {
+        "sender": {
+          "publicKeyHex": "049a68bf92a1967a3e3fc7363e8cb164c99ad08a49d914dfc736e540af1cd9481ffc19d5c04560c3361541ed1bc7c80fa41a136e6d9a848b827d274d5d3ea64c12",
+          "nonce": 650652,
+          "balance": 898
+        },
+        "recipient": {
+          "publicKeyHex": "AD_d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+          "balance": 51,
+          "nonce": 6346.320023000391
+        },
+        "token": {
+          "tokenId": "d",
+          "name": "granite",
+          "contractAddress": "s",
+          "ticker": "gran",
+          "totalSupply": 1000000000,
+          "circulatingSupply": 10
+        },
+        "value": 50,
+        "gasfee": 1,
+        "txHash": "995de9190957f4c4cd4ff5811bde9a70fc7858f4da46639fba5239d38ee3c29e",
+        "signature": {
+          "r": "f76aab9b6fe54fdeab2bd6e7c15e4c402ebe63607c0740fa487e768ead683076",
+          "s": "48695f8ce3a1c1224011ea636e9454aa0fa6c470d1c6eec7afa57d4d00cec20d"
+        },
+        "txSecret": "15cdc88391da0d897b2b61e0add98569a7901ceb7c2666d2cc7b888a32909359",
+        "txSecretDiff": 4,
+        "nonce": 789
+      },
+      {
+        "sender": {
+          "publicKeyHex": "049a68bf92a1967a3e3fc7363e8cb164c99ad08a49d914dfc736e540af1cd9481ffc19d5c04560c3361541ed1bc7c80fa41a136e6d9a848b827d274d5d3ea64c12",
+          "nonce": 650652,
+          "balance": 847
+        },
+        "recipient": {
+          "publicKeyHex": "AD_d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+          "balance": 51,
+          "nonce": 2239.5037900231587
+        },
+        "token": {
+          "tokenId": "d",
+          "name": "granite",
+          "contractAddress": "s",
+          "ticker": "gran",
+          "totalSupply": 1000000000,
+          "circulatingSupply": 10
+        },
+        "value": 50,
+        "gasfee": 1,
+        "txHash": "67db1788856d5456f09e1463a7ff5a16e77e8a2cdaea037cdfb3758461f01c86",
+        "signature": {
+          "r": "9cebc2ffc7bbb36cb1b652dc4f840fe53aadd00546370c3cdc37693eb86b5e14",
+          "s": "63e657c9945f06ae7e656420c7db416b8e635938d4ac772c3f6906f6028f5525"
+        },
+        "txSecret": "9d555d0a13ba72ece408fc75f8ad0809cbb393db0f535c48bc4c9054ec8d2533",
+        "txSecretDiff": 4,
+        "nonce": 789
+      },
+      {
+        "sender": {
+          "publicKeyHex": "049a68bf92a1967a3e3fc7363e8cb164c99ad08a49d914dfc736e540af1cd9481ffc19d5c04560c3361541ed1bc7c80fa41a136e6d9a848b827d274d5d3ea64c12",
+          "nonce": 650652,
+          "balance": 796
+        },
+        "recipient": {
+          "publicKeyHex": "AD_d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+          "balance": 51,
+          "nonce": 9013.291648250226
+        },
+        "token": {
+          "tokenId": "d",
+          "name": "granite",
+          "contractAddress": "s",
+          "ticker": "gran",
+          "totalSupply": 1000000000,
+          "circulatingSupply": 10
+        },
+        "value": 50,
+        "gasfee": 1,
+        "txHash": "cfb4d1c65dca1065d8cce15eb8ed145dcde34d5094ffd6eb3ef91f4279c05911",
+        "signature": {
+          "r": "a8b6b6b47135da0d0f11853018d57c9410670d6d1622313e7ce470f4fab3f89a",
+          "s": "3f7180dabbeb9112226a8af391beb93dd2209abed2901438ececb0a973d9b372"
+        },
+        "txSecret": "7b5816e226d11b625e6758bb09d238f0002cce5c942b6060d5ec51030b9ddefb",
+        "txSecretDiff": 4,
+        "nonce": 789
+      },
+      {
+        "sender": {
+          "publicKeyHex": "049a68bf92a1967a3e3fc7363e8cb164c99ad08a49d914dfc736e540af1cd9481ffc19d5c04560c3361541ed1bc7c80fa41a136e6d9a848b827d274d5d3ea64c12",
+          "nonce": 650652,
+          "balance": 745
+        },
+        "recipient": {
+          "publicKeyHex": "AD_d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+          "balance": 51,
+          "nonce": 6292.906324075829
+        },
+        "token": {
+          "tokenId": "d",
+          "name": "granite",
+          "contractAddress": "s",
+          "ticker": "gran",
+          "totalSupply": 1000000000,
+          "circulatingSupply": 10
+        },
+        "value": 50,
+        "gasfee": 1,
+        "txHash": "800915f9d1c5bf4ff1da80126d6872aad8c1005c15d57aa6aa017159455c1e37",
+        "signature": {
+          "r": "99fbc8c838c007e4c1dcc621cd4e0ee6c5f68a2da39d44649723c75b05d8aa6a",
+          "s": "6c05307ada6d1c08782e44c4e6a3c7e318cce40471c0286778672c37fde03fd1"
+        },
+        "txSecret": "9fa4e2ac63a25a0c23b1eb7ca73e06c7c16ae9d021d25b5f9a082b4db1f9ab5b",
+        "txSecretDiff": 4,
+        "nonce": 789
+      },
+      {
+        "sender": {
+          "publicKeyHex": "049a68bf92a1967a3e3fc7363e8cb164c99ad08a49d914dfc736e540af1cd9481ffc19d5c04560c3361541ed1bc7c80fa41a136e6d9a848b827d274d5d3ea64c12",
+          "nonce": 650652,
+          "balance": 694
+        },
+        "recipient": {
+          "publicKeyHex": "AD_d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+          "balance": 51,
+          "nonce": 5653.872016754047
+        },
+        "token": {
+          "tokenId": "d",
+          "name": "granite",
+          "contractAddress": "s",
+          "ticker": "gran",
+          "totalSupply": 1000000000,
+          "circulatingSupply": 10
+        },
+        "value": 50,
+        "gasfee": 1,
+        "txHash": "78ef17a6b85fa34d50f713e097ea88bdf2089b35d7f77884fcf15b5cd874a895",
+        "signature": {
+          "r": "26b70fbfc8ea1d4c3cc0f34a5ea0f8093f33a23fb4ee2a80d677b27ac2a7777",
+          "s": "a1b1b165e4db8147371ed2dd0a74ba185a0a0bcbd3281291795028ec6518046"
+        },
+        "txSecret": "b8da3458ec5f08e89822e099bbcbc4a3e3673c26bf1d14e398f9373bb49daf67",
+        "txSecretDiff": 4,
+        "nonce": 789
       }
     ]
   }
@@ -830,7 +980,40 @@
 ---
 ./blockchain/unverified_transactions_pool.json
 ---
-
+{
+  "pool": [
+    {
+      "sender": {
+        "publicKeyHex": "049a68bf92a1967a3e3fc7363e8cb164c99ad08a49d914dfc736e540af1cd9481ffc19d5c04560c3361541ed1bc7c80fa41a136e6d9a848b827d274d5d3ea64c12",
+        "nonce": 650652,
+        "balance": 694
+      },
+      "recipient": {
+        "publicKeyHex": "AD_d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35",
+        "balance": 51,
+        "nonce": 5653.872016754047
+      },
+      "token": {
+        "tokenId": "d",
+        "name": "granite",
+        "contractAddress": "s",
+        "ticker": "gran",
+        "totalSupply": 1000000000,
+        "circulatingSupply": 10
+      },
+      "value": 50,
+      "gasfee": 1,
+      "txHash": "78ef17a6b85fa34d50f713e097ea88bdf2089b35d7f77884fcf15b5cd874a895",
+      "signature": {
+        "r": "26b70fbfc8ea1d4c3cc0f34a5ea0f8093f33a23fb4ee2a80d677b27ac2a7777",
+        "s": "a1b1b165e4db8147371ed2dd0a74ba185a0a0bcbd3281291795028ec6518046"
+      },
+      "txSecret": "b8da3458ec5f08e89822e099bbcbc4a3e3673c26bf1d14e398f9373bb49daf67",
+      "txSecretDiff": 4,
+      "nonce": 789
+    }
+  ]
+}
 
 ---
 ./src/classes.ts
@@ -949,7 +1132,7 @@ export const NATIVE_TOKEN: Token = {
 ./src/data.ts
 ---
 import { NATIVE_TOKEN } from './constants'
-import type { AddressInterface, Transaction, TransactionData } from './interfaces'
+import type { AddressInterface, Transaction} from './interfaces'
 
 export const genesisSender: AddressInterface = {
   publicKeyHex: 'AD_6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b',
@@ -976,7 +1159,7 @@ export const genesisTx: Transaction<AddressInterface> = {
   nonce: 120
 }
 
-export const mockTransactionData: TransactionData = [
+export const mockTransactionData: Transaction[] = [
   genesisTx,
   {
     sender: { publicKeyHex: 'AD_a1b2c3d4e5f6', balance: 100, nonce: 123 },
@@ -1177,7 +1360,7 @@ const NATIVE_TOKEN: Token = {
 // Initializing elliptic curve using secp256k 1
 const ellipticCurve = new ec('secp256k1');
 
-const genesisBlock: Block = new Block(0, 'aeebad4a796fcc2e15dc4c6061b45ed9b373f26adfc798ca7d2d8cc58182718e', 'null', 1465154705, 1, 1, genesisSender, 'accumulator', mockTransactionData[0]);
+const genesisBlock: Block = new Block(0, 'aeebad4a796fcc2e15dc4c6061b45ed9b373f26adfc798ca7d2d8cc58182718e', 'null', 1465154705, 1, 1, genesisSender, 'accumulator', mockTransactionData[0] as VerifiedTransaction<AddressInterface | AddressClass>);
 
 const calculateHash = (
   index: number,
@@ -1195,7 +1378,7 @@ const calculateHash = (
 };
 
 const calculateHashForBlock = (block: Block): string => {
-  const hash = calculateHash(block.index, block.previousHash, block.timestamp, block.difficulty, block.minterAddress, block.minterBalance, block.data[0]); /// -> For now the block hash is calculated only using the first transaction just to deal with any errors for now
+  const hash = calculateHash(block.index, block.previousHash, block.timestamp, block.difficulty, block.minterAddress, block.minterBalance, block.transaction); /// -> For now the block hash is calculated only using the first transaction just to deal with any errors for now
   return hash;
 }
 
@@ -1221,16 +1404,16 @@ function getLatestBlock(): Block {
     txSecretDiff: 8,
     nonce: 432
   }
-  const randomBlock = new Block(5, '', '', 89, 1, 1, genesisSender, 'accumulator', mockTransactionData)
+  const randomBlock = new Block(5, '', '', 89, 1, 1, genesisSender, 'accumulator', mockTransactionData[0] as VerifiedTransaction<AddressInterface | AddressClass>)
   return randomBlock;
 }
 
-const generateNextBlock = (blockData: Transaction): Block => {
+const generateNextBlock = (data: VerifiedTransaction): Block => {
   const previousBlock: Block = getLatestBlock();
   const nextIndex: number = previousBlock.index + 1;
   const nextTimestamp: number = new Date().getTime() / 1000;
-  const nextHash: string = calculateHash(nextIndex, previousBlock.hash, nextTimestamp, 7, genesisSender, genesisSender.balance, blockData); /// Don't forget to change later, also modify the calculateHash function
-  const newBlock: Block = new Block(nextIndex, nextHash, previousBlock.hash, nextTimestamp, 7, genesisSender.balance, genesisSender, "root", blockData);
+  const nextHash: string = calculateHash(nextIndex, previousBlock.hash, nextTimestamp, 7, genesisSender, genesisSender.balance, data); /// Don't forget to change later, also modify the calculateHash function
+  const newBlock: Block = new Block(nextIndex, nextHash, previousBlock.hash, nextTimestamp, 7, genesisSender.balance, genesisSender, "root", data);
   return newBlock;
 }
 
@@ -1484,19 +1667,50 @@ console.log("Verifying non-root (testing -7n):", verifyRoot(myProof, 7n));
 ./src/server.ts
 ---
 import { Hono } from 'hono';
+import { readFile, checkIfFileExists, checkIfFileIsEmpty } from './util'
+import { BLOCKCHAIN_PATH, WALLET_PATH } from './constants';
+import * as Interfaces from './interfaces'
 
 const app = new Hono();
 
+/// ::::::::: Helpers :::::::::: 
+
+async function getLocalBlockchainData() {
+    if (!checkIfFileExists(BLOCKCHAIN_PATH)) throw new Error("Blockchain file does not exist locally");
+    if (checkIfFileIsEmpty(BLOCKCHAIN_PATH)) throw new Error("Local blockchain record is empty");
+    const d = readFile(BLOCKCHAIN_PATH, "BD");
+    return d;
+}
+
+async function getLocalTransactionData() {
+    if (!checkIfFileExists(WALLET_PATH)) throw new Error("Wallet file does not exist locally");
+    if (checkIfFileIsEmpty(WALLET_PATH)) throw new Error("Local transaction record is empty");  
+    const d = readFile(WALLET_PATH, "WD") as Interfaces.WalletData
+    delete (d as { accountDetails? : {}}).accountDetails /// delete any sensitive data before sending it
+    return (d.transactionHistory) /// extra check to make sure that sensitive data is not sent
+}
 /// :::::::::::::: Blockchain Network Endpoints :::::::::::::::::
 
 /// get blockchain
 app.get('/blocks', async (c) => {
-    
+    try {
+        const d = await getLocalBlockchainData();
+        return c.json({success: true, data: d}, 200)
+    } catch (error) {
+        if (error instanceof Error) return c.json({success: false, error: error.message}, 500);
+        return c.json({success: false, error: error})
+    }
 });
 
 /// get user transaction history 
 app.get('/transactions', async (c) => {
-    
+    try {
+        const d = await getLocalTransactionData();
+        return c.json({success: true, data: d}, 200)
+    } catch (error) {
+        if (error instanceof Error) return c.json({success: false, error: error.message}, 500);
+        return c.json({success: false, error: error})
+    }    
 });
 
 /// mint a block
@@ -1543,7 +1757,7 @@ import { readFile } from "./util"
 import { UNVERIFIED_TRANSACTIONS_PATH } from "./constants.js";
 
 export function getUnverifiedTransactionPool(): Interfaces.Transaction<Interfaces.AddressInterface>[] {
-  const data = readFile(UNVERIFIED_TRANSACTIONS_PATH) as Interfaces.UnverifiedTransactionPoolInterface;
+  const data = readFile(UNVERIFIED_TRANSACTIONS_PATH, "UTP") as Interfaces.UnverifiedTransactionPoolInterface;
   if (!data) throw new Error("An error occured");
   return data.pool as Interfaces.Transaction<Interfaces.AddressInterface>[];
 };
@@ -1570,8 +1784,44 @@ import { Block } from './interfaces';
 const ellipticCurve = new ec('secp256k1');
 
 /// Read data from a file
-export function readFile(filePath: string): Interfaces.WalletData | Interfaces.UnverifiedTransactionPoolInterface | Interfaces.Block[] {
+export function readFile(filePath: string, ft: "WD" | "UTP" | "BD"): Interfaces.WalletData | Interfaces.UnverifiedTransactionPoolInterface | Interfaces.Block[] {
+  if (!filePath && typeof(filePath) != "string") throw new Error("Enter a valid file path");
+  if (ft != "WD" && ft != "UTP" && ft != "BD") throw new Error("Invalid ft"); /// What is ft?? It is the type of file you want to view, WD -> Wallet Data, UTP -> Unverified Transaction Pool, BD -> Blockchain Data
   let data: string;
+  if (!checkIfFileExists(filePath)) throw new Error("No such file exists in the path you specified");
+  if (checkIfFileIsEmpty(filePath)) {
+
+    switch(ft) {
+      case "WD":
+        let wd: Interfaces.WalletData = {
+          accountDetails: {
+            privateKeyHex: "",
+            address: {
+              publicKeyHex: "",
+              balance: 0,
+              nonce: 0
+            }
+          },
+          transactionHistory: {
+            TxIN: [],
+            TxOut: []
+          }
+        }
+        return wd;
+        
+        case "UTP": 
+          let utp: Interfaces.UnverifiedTransactionPoolInterface = {
+            pool: []
+          } 
+          return utp;
+        
+        case 'BD':
+          console.log("Do nothing for now") /// Don't forget to update this
+        
+        default:
+          /// does nothing
+    }
+  }
   try {
     data = readFileSync(filePath, 'utf-8');
   } catch (error) {
@@ -1617,7 +1867,7 @@ function writeFile(filePath: string, data: object): void {
 
 
 /// Check if a file exists
-function checkIfFileExists(filePath: string): boolean {
+export function checkIfFileExists(filePath: string): boolean {
   try {
     return existsSync(filePath) && statSync(filePath).isFile();
   } catch (error) {
@@ -1626,9 +1876,10 @@ function checkIfFileExists(filePath: string): boolean {
 }
 
 /// Check if file is empty
-function checkIfFileIsEmpty(filePath: string): boolean {
+export function checkIfFileIsEmpty(filePath: string,): boolean {
   if (checkIfFileExists(filePath)) {
-    const fileData = readFile(filePath);
+    const fileData = readFileSync(filePath, "utf-8") ?? "";
+    if (fileData.length == 0) return false
     if (Object.keys(fileData).length === 0) {
       return true;
     }
@@ -1658,7 +1909,7 @@ function genUniqueNonce(): number {
 
 export const getUserBalanceFromLocalBC = (senderPublicKeyHex: string): number => {
   if (!checkIfFileExists(CONSTANTS.BLOCKCHAIN_PATH)) throw new Error("Block chain file doesn't exist");
-  const blockchain: Block[] = readFile(CONSTANTS.BLOCKCHAIN_PATH) as Block[];
+  const blockchain: Block[] = readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Block[];
   if (blockchain.length === 0) throw new Error("The blockchain is empty")
   let balance = 0;
   blockchain.forEach(block => {
@@ -1683,13 +1934,14 @@ import CryptoJS from 'crypto-js';
 import { createHash, randomBytes } from 'node:crypto';
 import crypto from 'crypto';
 import { ec } from 'elliptic';
-import type { AccountInterface, AddressInterface, Transaction, Token, Signature, WalletData } from './interfaces.ts';
+import type { AccountInterface, AddressInterface, Transaction, Token, Signature, WalletData, UnverifiedTransactionPoolInterface } from './interfaces.ts';
 import { AccountClass, AddressClass } from './classes.js';
 import { readFileSync, writeFileSync, existsSync, statSync } from 'fs';
 import * as path from 'path';
 import { read } from 'node:fs';
 import baseX from 'base-x'
-import { WALLET_PATH, BLOCKCHAIN_PATH, BASE62 } from './constants.js'
+import { WALLET_PATH, BLOCKCHAIN_PATH, BASE62, UNVERIFIED_TRANSACTIONS_PATH } from './constants.js'
+import { readFile, checkIfFileExists, checkIfFileIsEmpty } from './util';
 const ellipticCurve = new ec('secp256k1');
 
 /// CONSTANTS 
@@ -1712,18 +1964,6 @@ const testReciever: AddressInterface = {
   balance: 1,
   nonce: Math.random() * 10000 // Don't forget to change later
 };
-
-/// Read data from a file
-export function readFile(filePath: string): WalletData {
-  let data: string;
-  try {
-    data = readFileSync(filePath, 'utf-8');
-  } catch (error) {
-    console.error("Error reading file: ", error);
-    throw error;
-  }
-  return JSON.parse(data)
-}
 
 /// Sign transactions
 
@@ -1759,26 +1999,6 @@ function writeFile(filePath: string, data: object): void {
   }
 }
 
-
-/// Check if a file exists
-function checkIfFileExists(filePath: string): boolean {
-  try {
-    return existsSync(filePath) && statSync(filePath).isFile();
-  } catch (error) {
-    return false
-  }
-}
-
-/// Check if file is empty
-function checkIfFileIsEmpty(filePath: string): boolean {
-  if (checkIfFileExists(filePath)) {
-    const fileData = readFile(filePath);
-    if (Object.keys(fileData).length === 0) {
-      return true;
-    }
-  }
-  return false
-}
 
 /// Generate key pair
 const genKeyPair = (): { privKey: string, pubKey: string } => {
@@ -1833,7 +2053,8 @@ function createWallet() {
 }
 
 function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,): Transaction<AddressInterface> {
-  const wallet_data = readFile(WALLET_PATH);
+  const wallet_data = readFile(WALLET_PATH, "WD") as WalletData;
+  const unverified_transactions_pool = readFile(UNVERIFIED_TRANSACTIONS_PATH, "UTP") as UnverifiedTransactionPoolInterface;
   if (wallet_data.accountDetails.address.balance < amountToSend) {
     throw new Error(`You don't have enough ${NATIVE_TOKEN.name} to make this transaction`)
   }
@@ -1879,10 +2100,11 @@ function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,)
     }
   }
 
-  writeFile(WALLET_PATH, updated_wallet_data)
+  unverified_transactions_pool.pool.push(transaction) /// update the transaction pool;
 
-  console.log("This is the transaction data: ", transaction);
-  console.log("This is the updated wallet data: ", updated_wallet_data)
+  writeFile(WALLET_PATH, updated_wallet_data)
+  writeFile(UNVERIFIED_TRANSACTIONS_PATH, unverified_transactions_pool)
+
   return transaction;
 }
 
@@ -1894,10 +2116,10 @@ const verifyTxSignature = (txHash: string, publicKeyHex: string, signature: { r:
 const verifyBalanceFromTransactionHistory = (): boolean => {
   console.log("Checking Transaction History");
 
-  const wallet_data = readFile(WALLET_PATH);
+  const wallet_data = readFile(WALLET_PATH, "WD") as WalletData;
   const wallet_balance = wallet_data.accountDetails.address.balance;
 
-  // Verify transaction hashes
+  /// Verify transaction hashes
   const unverifiedTransactionsOut = (wallet_data.transactionHistory.TxOut as Transaction<AddressInterface>[]).map(_ => verifyTxHash(_)).filter(_ => _ === false);
   const unverifiedTransactionsIn = (wallet_data.transactionHistory.TxIN as Transaction<AddressInterface>[]).map(_ => verifyTxHash(_)).filter(_ => _ === false);
 
@@ -1933,7 +2155,7 @@ const verifyBalanceFromTransactionHistory = (): boolean => {
 }
 
 const getAccountBalance = (): number | undefined => {
-  const wallet_data = readFile(WALLET_PATH);
+  const wallet_data = readFile(WALLET_PATH, "WD") as WalletData;
   const walletVerified = verifyBalanceFromTransactionHistory();
   if (!walletVerified) {
     console.error("Your account balance could not be verified")
@@ -1951,8 +2173,6 @@ export const generateTxnSecret = (difficulty: number): string => {
   const truncated: string = str.slice(0, difficulty);
   const secret: string = trailingZeros + truncated;
   const result: string = createHash('sha256').update(secret).digest('hex');
-  console.log("Secret: ", secret);
-  console.log(result);
   return result
 }
 
@@ -1986,8 +2206,8 @@ const verifyTxSecret = (secretHash: string, guess: string): boolean => {
 
 
 // verifyBalanceFromTransactionHistory();
-// makeTransaction(testReciever, 50);
-console.log("Is user balance correct?: ", verifyBalanceFromTransactionHistory());
+makeTransaction(testReciever, 50);
+// console.log("Is user balance correct?: ", verifyBalanceFromTransactionHistory());
 // generateTxnSecret(4);
 // guessTxnSecret(4,"935aee836cfee766db9a51db08046d3f721f2553a593ff92dd2466f7e682626a") /// secret to find -> 000000000000052Dq
 

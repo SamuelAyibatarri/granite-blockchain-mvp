@@ -8,8 +8,44 @@ import { Block } from './interfaces';
 const ellipticCurve = new ec('secp256k1');
 
 /// Read data from a file
-export function readFile(filePath: string): Interfaces.WalletData | Interfaces.UnverifiedTransactionPoolInterface | Interfaces.Block[] {
+export function readFile(filePath: string, ft: "WD" | "UTP" | "BD"): Interfaces.WalletData | Interfaces.UnverifiedTransactionPoolInterface | Interfaces.Block[] {
+  if (!filePath && typeof(filePath) != "string") throw new Error("Enter a valid file path");
+  if (ft != "WD" && ft != "UTP" && ft != "BD") throw new Error("Invalid ft"); /// What is ft?? It is the type of file you want to view, WD -> Wallet Data, UTP -> Unverified Transaction Pool, BD -> Blockchain Data
   let data: string;
+  if (!checkIfFileExists(filePath)) throw new Error("No such file exists in the path you specified");
+  if (checkIfFileIsEmpty(filePath)) {
+
+    switch(ft) {
+      case "WD":
+        let wd: Interfaces.WalletData = {
+          accountDetails: {
+            privateKeyHex: "",
+            address: {
+              publicKeyHex: "",
+              balance: 0,
+              nonce: 0
+            }
+          },
+          transactionHistory: {
+            TxIN: [],
+            TxOut: []
+          }
+        }
+        return wd;
+        
+        case "UTP": 
+          let utp: Interfaces.UnverifiedTransactionPoolInterface = {
+            pool: []
+          } 
+          return utp;
+        
+        case 'BD':
+          console.log("Do nothing for now") /// Don't forget to update this
+        
+        default:
+          /// does nothing
+    }
+  }
   try {
     data = readFileSync(filePath, 'utf-8');
   } catch (error) {
@@ -55,7 +91,7 @@ function writeFile(filePath: string, data: object): void {
 
 
 /// Check if a file exists
-function checkIfFileExists(filePath: string): boolean {
+export function checkIfFileExists(filePath: string): boolean {
   try {
     return existsSync(filePath) && statSync(filePath).isFile();
   } catch (error) {
@@ -64,9 +100,10 @@ function checkIfFileExists(filePath: string): boolean {
 }
 
 /// Check if file is empty
-function checkIfFileIsEmpty(filePath: string): boolean {
+export function checkIfFileIsEmpty(filePath: string,): boolean {
   if (checkIfFileExists(filePath)) {
-    const fileData = readFile(filePath);
+    const fileData = readFileSync(filePath, "utf-8") ?? "";
+    if (fileData.length == 0) return false
     if (Object.keys(fileData).length === 0) {
       return true;
     }
@@ -96,7 +133,7 @@ function genUniqueNonce(): number {
 
 export const getUserBalanceFromLocalBC = (senderPublicKeyHex: string): number => {
   if (!checkIfFileExists(CONSTANTS.BLOCKCHAIN_PATH)) throw new Error("Block chain file doesn't exist");
-  const blockchain: Block[] = readFile(CONSTANTS.BLOCKCHAIN_PATH) as Block[];
+  const blockchain: Block[] = readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Block[];
   if (blockchain.length === 0) throw new Error("The blockchain is empty")
   let balance = 0;
   blockchain.forEach(block => {

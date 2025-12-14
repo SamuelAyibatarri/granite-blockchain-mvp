@@ -2,13 +2,14 @@ import CryptoJS from 'crypto-js';
 import { createHash, randomBytes } from 'node:crypto';
 import crypto from 'crypto';
 import { ec } from 'elliptic';
-import type { AccountInterface, AddressInterface, Transaction, Token, Signature, WalletData } from './interfaces.ts';
+import type { AccountInterface, AddressInterface, Transaction, Token, Signature, WalletData, UnverifiedTransactionPoolInterface } from './interfaces.ts';
 import { AccountClass, AddressClass } from './classes.js';
 import { readFileSync, writeFileSync, existsSync, statSync } from 'fs';
 import * as path from 'path';
 import { read } from 'node:fs';
 import baseX from 'base-x'
-import { WALLET_PATH, BLOCKCHAIN_PATH, BASE62 } from './constants.js'
+import { WALLET_PATH, BLOCKCHAIN_PATH, BASE62, UNVERIFIED_TRANSACTIONS_PATH } from './constants.js'
+import { readFile, checkIfFileExists, checkIfFileIsEmpty } from './util';
 const ellipticCurve = new ec('secp256k1');
 
 /// CONSTANTS 
@@ -31,18 +32,6 @@ const testReciever: AddressInterface = {
   balance: 1,
   nonce: Math.random() * 10000 // Don't forget to change later
 };
-
-/// Read data from a file
-export function readFile(filePath: string): WalletData {
-  let data: string;
-  try {
-    data = readFileSync(filePath, 'utf-8');
-  } catch (error) {
-    console.error("Error reading file: ", error);
-    throw error;
-  }
-  return JSON.parse(data)
-}
 
 /// Sign transactions
 
@@ -78,26 +67,6 @@ function writeFile(filePath: string, data: object): void {
   }
 }
 
-
-/// Check if a file exists
-function checkIfFileExists(filePath: string): boolean {
-  try {
-    return existsSync(filePath) && statSync(filePath).isFile();
-  } catch (error) {
-    return false
-  }
-}
-
-/// Check if file is empty
-function checkIfFileIsEmpty(filePath: string): boolean {
-  if (checkIfFileExists(filePath)) {
-    const fileData = readFile(filePath);
-    if (Object.keys(fileData).length === 0) {
-      return true;
-    }
-  }
-  return false
-}
 
 /// Generate key pair
 const genKeyPair = (): { privKey: string, pubKey: string } => {
@@ -152,7 +121,8 @@ function createWallet() {
 }
 
 function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,): Transaction<AddressInterface> {
-  const wallet_data = readFile(WALLET_PATH);
+  const wallet_data = readFile(WALLET_PATH, "WD") as WalletData;
+  const unverified_transactions_pool = readFile(UNVERIFIED_TRANSACTIONS_PATH, "UTP") as UnverifiedTransactionPoolInterface;
   if (wallet_data.accountDetails.address.balance < amountToSend) {
     throw new Error(`You don't have enough ${NATIVE_TOKEN.name} to make this transaction`)
   }
@@ -198,10 +168,11 @@ function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,)
     }
   }
 
-  writeFile(WALLET_PATH, updated_wallet_data)
+  unverified_transactions_pool.pool.push(transaction) /// update the transaction pool;
 
-  console.log("This is the transaction data: ", transaction);
-  console.log("This is the updated wallet data: ", updated_wallet_data)
+  writeFile(WALLET_PATH, updated_wallet_data)
+  writeFile(UNVERIFIED_TRANSACTIONS_PATH, unverified_transactions_pool)
+
   return transaction;
 }
 
@@ -213,10 +184,10 @@ const verifyTxSignature = (txHash: string, publicKeyHex: string, signature: { r:
 const verifyBalanceFromTransactionHistory = (): boolean => {
   console.log("Checking Transaction History");
 
-  const wallet_data = readFile(WALLET_PATH);
+  const wallet_data = readFile(WALLET_PATH, "WD") as WalletData;
   const wallet_balance = wallet_data.accountDetails.address.balance;
 
-  // Verify transaction hashes
+  /// Verify transaction hashes
   const unverifiedTransactionsOut = (wallet_data.transactionHistory.TxOut as Transaction<AddressInterface>[]).map(_ => verifyTxHash(_)).filter(_ => _ === false);
   const unverifiedTransactionsIn = (wallet_data.transactionHistory.TxIN as Transaction<AddressInterface>[]).map(_ => verifyTxHash(_)).filter(_ => _ === false);
 
@@ -252,7 +223,7 @@ const verifyBalanceFromTransactionHistory = (): boolean => {
 }
 
 const getAccountBalance = (): number | undefined => {
-  const wallet_data = readFile(WALLET_PATH);
+  const wallet_data = readFile(WALLET_PATH, "WD") as WalletData;
   const walletVerified = verifyBalanceFromTransactionHistory();
   if (!walletVerified) {
     console.error("Your account balance could not be verified")
@@ -270,8 +241,6 @@ export const generateTxnSecret = (difficulty: number): string => {
   const truncated: string = str.slice(0, difficulty);
   const secret: string = trailingZeros + truncated;
   const result: string = createHash('sha256').update(secret).digest('hex');
-  console.log("Secret: ", secret);
-  console.log(result);
   return result
 }
 
@@ -305,7 +274,7 @@ const verifyTxSecret = (secretHash: string, guess: string): boolean => {
 
 
 // verifyBalanceFromTransactionHistory();
-// makeTransaction(testReciever, 50);
-console.log("Is user balance correct?: ", verifyBalanceFromTransactionHistory());
+makeTransaction(testReciever, 50);
+// console.log("Is user balance correct?: ", verifyBalanceFromTransactionHistory());
 // generateTxnSecret(4);
 // guessTxnSecret(4,"935aee836cfee766db9a51db08046d3f721f2553a593ff92dd2466f7e682626a") /// secret to find -> 000000000000052Dq
