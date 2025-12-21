@@ -1,21 +1,20 @@
 import { readFileSync, writeFileSync, existsSync, statSync } from 'fs';
 import * as Interfaces from './interfaces';
 import { createHash, randomBytes } from 'node:crypto';
-import { ec } from 'elliptic'
-import * as CONSTANTS from './constants'
-import { Block } from './interfaces';
+import { ec } from 'elliptic';
+import * as CONSTANTS from './constants';
 
 const ellipticCurve = new ec('secp256k1');
 
 /// Read data from a file
-export function readFile(filePath: string, ft: "WD" | "UTP" | "BD"): Interfaces.WalletData | Interfaces.UnverifiedTransactionPoolInterface | Interfaces.Block[] {
-  if (!filePath && typeof(filePath) != "string") throw new Error("Enter a valid file path");
+export function readFile(filePath: string, ft: "WD" | "UTP" | "BD"): Interfaces.WalletData | Interfaces.UnverifiedTransactionPoolInterface | Interfaces.Blockchain {
+  if (!filePath && typeof (filePath) != "string") throw new Error("Enter a valid file path");
   if (ft != "WD" && ft != "UTP" && ft != "BD") throw new Error("Invalid ft"); /// What is ft?? It is the type of file you want to view, WD -> Wallet Data, UTP -> Unverified Transaction Pool, BD -> Blockchain Data
   let data: string;
   if (!checkIfFileExists(filePath)) throw new Error("No such file exists in the path you specified");
   if (checkIfFileIsEmpty(filePath)) {
 
-    switch(ft) {
+    switch (ft) {
       case "WD":
         let wd: Interfaces.WalletData = {
           accountDetails: {
@@ -32,18 +31,27 @@ export function readFile(filePath: string, ft: "WD" | "UTP" | "BD"): Interfaces.
           }
         }
         return wd;
-        
-        case "UTP": 
-          let utp: Interfaces.UnverifiedTransactionPoolInterface = {
-            pool: []
-          } 
-          return utp;
-        
-        case 'BD':
-          console.log("Do nothing for now") /// Don't forget to update this
-        
-        default:
-          /// does nothing
+
+      case "UTP":
+        let utp: Interfaces.UnverifiedTransactionPoolInterface = {
+          pool: []
+        }
+        return utp;
+
+      case 'BD':
+        let bd: Interfaces.Blockchain = {
+          blocks: [CONSTANTS.genesisBlock],
+          stateRoot: "place-holder-roor", /// Warning: -> Playceholder for now, update later
+          state: {
+            chainLength: 1,
+            chainSize: 1,
+            nativeToken: CONSTANTS.NATIVE_TOKEN,
+            cumulativeDifficulty: 1,
+          } /// Warning: -> Everything is a placeholder
+        }
+
+      default:
+      /// does nothing obviously
     }
   }
   try {
@@ -72,7 +80,7 @@ const calculateHashForTransaction = (sender: Interfaces.AddressInterface, recipi
   return result;
 }
 
-const verifyTxHash = (transaction: Interfaces.Transaction<Interfaces.AddressInterface>): boolean => {
+const verifyTxHash = (transaction: Interfaces.Transaction): boolean => {
   let storedTxHash: string = transaction.txHash;
   let calculatedTxHash: string = calculateHashForTransaction(transaction.sender, transaction.recipient, transaction.token, transaction.value, transaction.gasfee);
   return storedTxHash === calculatedTxHash;
@@ -133,10 +141,10 @@ function genUniqueNonce(): number {
 
 export const getUserBalanceFromLocalBC = (senderPublicKeyHex: string): number => {
   if (!checkIfFileExists(CONSTANTS.BLOCKCHAIN_PATH)) throw new Error("Block chain file doesn't exist");
-  const blockchain: Block[] = readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Block[];
-  if (blockchain.length === 0) throw new Error("The blockchain is empty")
+  const blockchain: Interfaces.Blockchain = readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  if (blockchain.blocks.length === 0) throw new Error("The blockchain is empty")
   let balance = 0;
-  blockchain.forEach(block => {
+  blockchain.blocks.forEach(block => {
     const tx = block.transaction;
 
     if (tx.recipient.publicKeyHex === senderPublicKeyHex) {
@@ -147,5 +155,6 @@ export const getUserBalanceFromLocalBC = (senderPublicKeyHex: string): number =>
       balance -= (tx.value + tx.gasfee);
     }
   });
+
   return balance;
 }

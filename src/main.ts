@@ -1,16 +1,12 @@
 // import CryptoJS from 'crypto-js';
 import { createHash } from 'node:crypto';
-import { genesisReciever, genesisSender, genesisTx, mockTransactionData } from './data.js';
-import { diff } from 'node:util';
+import { genesisSender } from './data.js';
 import * as Util from './util'
-import BigNumber from 'bignumber.js';
-import CryptoJS from 'crypto-js';
 import { ec } from 'elliptic';
-import type { Signature, Transaction, Token, AddressInterface, VerifiedTransaction } from './interfaces.ts'
-import { AddressClass, AccountClass, Block } from './classes';
-import { create } from 'node:domain';
+import type * as Interfaces from './interfaces.ts'
 import { getUnverifiedTransactionPool, selectRandomTransaction } from './transactionPool.js';
 import { guessTxnSecret } from './wallet.js';
+import * as CONSTANTS from "./constants"
 
 // CONSTANTS
 
@@ -18,99 +14,55 @@ const BLOCK_GENERATION_INTERVAL: number = 60; // Seconds
 
 const DIFFICULTY_ADJUSTMENT_INTERVAL: number = 100 // Blocks
 
-const NATIVE_TOKEN: Token = {
-  tokenId: 'd',
-  name: 'granite',
-  contractAddress: 's',
-  ticker: 'gran',
-  totalSupply: 1000000000, // 100 Million Native Tokens
-  circulatingSupply: 10 // 10 Native Tokens in supply, the balance of the genesis sender and genesis receiver.
-};
-
 // Initializing elliptic curve using secp256k 1
 const ellipticCurve = new ec('secp256k1');
-
-const genesisBlock: Block = new Block(0, 'aeebad4a796fcc2e15dc4c6061b45ed9b373f26adfc798ca7d2d8cc58182718e', 'null', 1465154705, 1, 1, genesisSender, 'accumulator', mockTransactionData[0] as VerifiedTransaction<AddressInterface | AddressClass>);
 
 const calculateHash = (
   index: number,
   previousHash: string,
   timestamp: number,
   difficulty: number,
-  minterAddress: AddressInterface,
-  minterBalance: number,
-  data: Transaction
+  validator: string,
+  data: Interfaces.Transaction
 ): string => {
   const dataHash = data.txHash;
   return createHash('sha256')
-    .update(index + previousHash + timestamp + dataHash + difficulty + minterBalance + minterAddress.publicKeyHex)
+    .update(index + previousHash + timestamp + dataHash + difficulty + validator)
     .digest('hex');
 };
 
-const calculateHashForBlock = (block: Block): string => {
-  const hash = calculateHash(block.index, block.previousHash, block.timestamp, block.difficulty, block.minterAddress, block.minterBalance, block.transaction); /// -> For now the block hash is calculated only using the first transaction just to deal with any errors for now
+const calculateHashForBlock = (block: Interfaces.Block): string => {
+  const hash = calculateHash(block.blockIndex, block.prevBlockHash, block.timestamp, block.difficulty, block.validator, block.transaction); /// -> For now the block hash is calculated only using the first transaction just to deal with any errors for now
   return hash;
 }
 
-// This function does nothing for now
-function getLatestBlock(): Block {
-  const randomTransaction: Transaction<AddressInterface> = {
-    sender: {
-      publicKeyHex: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-      balance: 3.75,
-      nonce: 4
-    },
-    recipient: {
-      publicKeyHex: "3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy",
-      balance: 12.89,
-      nonce: 6
-    },
-    token: NATIVE_TOKEN,
-    value: 0.15,
-    gasfee: 0.0021,
-    txHash: "0x4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6",
-    signature: { r: '', s: '' },
-    txSecret: "8028f4ecd6da3344822baec652d52977973892f8766a6f78a8870f78c24ded51",
-    txSecretDiff: 8,
-    nonce: 432
-  }
-  const randomBlock = new Block(5, '', '', 89, 1, 1, genesisSender, 'accumulator', mockTransactionData[0] as VerifiedTransaction<AddressInterface | AddressClass>)
-  return randomBlock;
+export function getLatestBlock(): Interfaces.Block {
+  const b: Interfaces.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  //@ts-ignore
+  return b.blocks[0] as Interfaces.Block; /// Reminder: -> Theres an error because ts thinks b could be undefined, but the readFile function should always return a blockchain with the genesis block(If no transaction exists)
 }
 
-const generateNextBlock = (data: VerifiedTransaction): Block => {
-  const previousBlock: Block = getLatestBlock();
-  const nextIndex: number = previousBlock.index + 1;
-  const nextTimestamp: number = new Date().getTime() / 1000;
-  const nextHash: string = calculateHash(nextIndex, previousBlock.hash, nextTimestamp, 7, genesisSender, genesisSender.balance, data); /// Don't forget to change later, also modify the calculateHash function
-  const newBlock: Block = new Block(nextIndex, nextHash, previousBlock.hash, nextTimestamp, 7, genesisSender.balance, genesisSender, "root", data);
-  return newBlock;
-}
+export const isValidNewBlock = (newBlock: Interfaces.Block, previousBlock: Interfaces.Block): boolean => {
 
-// Block chain would be stored in an array for now
-let blockchain: Block[] = [genesisBlock];
-
-const isValidNewBlock = (newBlock: Block, previousBlock: Block): boolean => {
-
-  if (previousBlock.index + 1 !== newBlock.index) {
+  if (previousBlock.blockIndex + 1 !== newBlock.blockIndex) {
     console.log('Invalid Index');
     return false;
-  } else if (previousBlock.hash !== newBlock.previousHash) {
+  } else if (previousBlock.currentBlockHash !== newBlock.prevBlockHash) {
     console.log('invalid previoushash');
     return false;
-  } else if (calculateHashForBlock(newBlock) !== newBlock.hash) {
-    console.log(typeof (newBlock.hash) + '' + typeof calculateHashForBlock(newBlock));
-    console.log('invalid hash; ' + calculateHashForBlock(newBlock) + '' + newBlock.hash);
+  } else if (calculateHashForBlock(newBlock) !== newBlock.currentBlockHash) {
+    console.log(typeof (newBlock.currentBlockHash) + '' + typeof calculateHashForBlock(newBlock));
+    console.log('invalid hash; ' + calculateHashForBlock(newBlock) + '' + newBlock.currentBlockHash);
     return false;
   }
   return true;
 };
 
 
-const isValidChain = (blockchainToValidate: Block[]): boolean => {
-  const isValidGenesis = (block: Block | undefined): boolean => {
+const isValidChain = (blockchainToValidate: Interfaces.Block[]): boolean => {
+  const isValidGenesis = (block: Interfaces.Block | undefined): boolean => {
     if (!block) return false;
-    return JSON.stringify(block) === JSON.stringify(genesisBlock);
+    return JSON.stringify(block) === JSON.stringify(CONSTANTS.genesisBlock);
   };
 
   if (!isValidGenesis(blockchainToValidate[0])) {
@@ -143,7 +95,8 @@ const isValidChain = (blockchainToValidate: Block[]): boolean => {
 // }
 
 const getCurrentTimestamp = (): number => {
-  let latestBlock: Block = blockchain[blockchain.length - 1]!;
+  const blockchain: Interfaces.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  let latestBlock: Interfaces.Block = blockchain.blocks[blockchain.blocks.length - 1]!;
   return latestBlock.timestamp;
 }
 
@@ -161,14 +114,15 @@ const getCurrentTimestamp = (): number => {
 //     }
 // };
 
-const getDifficulty = (blockchain: Block[]): number => {
-  if (!blockchain || blockchain.length === 0) {
-    return -1; // or throw new Error("Blockchain is empty")
+const getDifficulty = (): number => {
+  const blockchain: Interfaces.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  if (!blockchain || blockchain.blocks.length === 0) {
+    throw new Error("Blockchain is empty"); /// -> This should theoretically never run
   }
 
-  const latestBlock = blockchain[blockchain.length - 1]!; // always defined now
+  const latestBlock: Interfaces.Block = blockchain.blocks[blockchain.blocks.length - 1]!; /// Reminder: -> I'm just now realising that I had already defined a function for this, SMH
 
-  if (latestBlock.index % DIFFICULTY_ADJUSTMENT_INTERVAL === 0 && latestBlock.index !== 0) {
+  if (latestBlock.blockIndex % DIFFICULTY_ADJUSTMENT_INTERVAL === 0 && latestBlock.blockIndex !== 0) {
     return getAdjustedDifficulty(latestBlock, blockchain);
   } else {
     return latestBlock.difficulty;
@@ -176,8 +130,8 @@ const getDifficulty = (blockchain: Block[]): number => {
 };
 
 
-const getAdjustedDifficulty = (latestBlock: Block, blockchain: Block[]): number => {
-  const prevAdjustmentBlock: Block = blockchain[blockchain.length - DIFFICULTY_ADJUSTMENT_INTERVAL]!;
+const getAdjustedDifficulty = (latestBlock: Interfaces.Block, blockchain: Interfaces.Blockchain): number => {
+  const prevAdjustmentBlock: Interfaces.Block = blockchain.blocks[blockchain.blocks.length - DIFFICULTY_ADJUSTMENT_INTERVAL]!;
   const timeExpected: number = BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL;
   const timeTaken: number = latestBlock.timestamp - prevAdjustmentBlock.timestamp;
   if (timeTaken < timeExpected / 2) {
@@ -189,7 +143,7 @@ const getAdjustedDifficulty = (latestBlock: Block, blockchain: Block[]): number 
   }
 };
 
-const signTx = (txHash: string, privKeyHex: string): Signature => {
+const signTx = (txHash: string, privKeyHex: string): Interfaces.Signature => {
   const key = ellipticCurve.keyFromPrivate(privKeyHex, 'hex');
   const signature = key.sign(txHash, { canonical: true });
 
@@ -204,19 +158,19 @@ const verifyTxSignature = (txHash: string, publicKeyHex: string, signature: { r:
   return key.verify(txHash, signature);
 };
 
-const verifyTxHash = (transaction: Transaction<AddressInterface>): boolean => {
+const verifyTxHash = (transaction: Interfaces.Transaction): boolean => {
   let storedTxHash: string = transaction.txHash;
   let calculatedTxHash: string = calculateHashForTransaction(transaction.sender, transaction.recipient, transaction.token, transaction.value, transaction.gasfee);
   return storedTxHash === calculatedTxHash;
 }
 
-const calculateHashForTransaction = (sender: AddressInterface, recipient: AddressInterface, token: Token, value: number, gasfee: number): string => {
+const calculateHashForTransaction = (sender: Interfaces.AddressInterface, recipient: Interfaces.AddressInterface, token: Interfaces.Token, value: number, gasfee: number): string => {
   const result: string = createHash('sha256').update(sender.publicKeyHex + recipient.publicKeyHex + token.tokenId + value + gasfee).digest('hex');
   return result;
 }
 
 /// Verify Transaction
-const verifyTx = (transaction: Transaction<AddressInterface>): boolean => {
+const verifyTx = (transaction: Interfaces.Transaction): boolean => {
   if (!verifyTxHash(transaction) || !verifyTxSignature(transaction.txHash, transaction.sender.publicKeyHex, transaction.signature)) {
     return false;
   };
@@ -228,47 +182,44 @@ const verifyTx = (transaction: Transaction<AddressInterface>): boolean => {
 }
 
 /// Mint a block
-const mintBlock = async (): Promise<Block> => {
+export const mintBlock = async (): Promise<Interfaces.Block> => {
   const pool = getUnverifiedTransactionPool();
-  const transaction = selectRandomTransaction(1, pool) as Transaction<AddressInterface>;
+  const transaction = selectRandomTransaction(1, pool) as Interfaces.Transaction;
 
   if (!verifyTx(transaction)) throw new Error("Invalid Transaction selected from pool");
 
-  const guessedTxnSecret = await guessTxnSecret(transaction.txSecretDiff, transaction.txSecret);
+  const guessedTxnSecret: string = await guessTxnSecret(transaction.txSecretDiff, transaction.txSecret);
 
   const prevBlock = getLatestBlock();
-  const nextIndex = prevBlock.index + 1;
+  const nextIndex = prevBlock.blockIndex + 1;
   const timestamp = Date.now() / 1000;
 
-  const verifiedTransaction: VerifiedTransaction = {
+  const verifiedTransaction: Interfaces.VerifiedTransaction = {
     ...transaction,
+    txSecretSolved: guessedTxnSecret,
     blockIndex: nextIndex
   };
 
-  const minerAddress = genesisSender; /// Should be the current node address not miner, I'll add the update later
-  const minerBalance = Util.getUserBalanceFromLocalBC(minerAddress.publicKeyHex);
+  const validator = genesisSender; /// Should be the current node address not miner, I'll add the update later
 
   const hash = calculateHash(
     nextIndex,
-    prevBlock.hash,
+    prevBlock.currentBlockHash,
     timestamp,
     7, /// Difficulty (hardcoded for now, it should be the same value as transaction difficulty)
-    minerAddress,
-    minerBalance,
+    validator.publicKeyHex,
     verifiedTransaction
   );
 
-  const newBlock = new Block(
-    nextIndex,
-    hash,
-    prevBlock.hash,
-    timestamp,
-    7,
-    minerBalance,
-    minerAddress,
-    "accumulator-placeholder", /// I'll have to change this since I won't be using the accumulator for this mvp
-    verifiedTransaction
-  );
+  const newBlock: Interfaces.Block = {
+    prevBlockHash: prevBlock.currentBlockHash,
+    currentBlockHash: hash,
+    blockIndex: nextIndex,
+    transaction: verifiedTransaction,
+    timestamp: timestamp,
+    validator: validator.publicKeyHex,
+    difficulty: 7 /// hardcoded for now
+  }
 
   return newBlock;
 }

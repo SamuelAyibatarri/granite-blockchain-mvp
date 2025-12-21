@@ -22,11 +22,9 @@ export interface Block {
   readonly prevBlockHash: string;
   readonly currentBlockHash: string;
   readonly blockIndex: number;
-  readonly blockHash: string;
-  readonly transaction: VerifiedTransaction<AddressInterface>; /// Just one transaction per block to reduce complexity
+  readonly transaction: VerifiedTransaction; /// Just one transaction per block to reduce complexity
   readonly timestamp: number;
   readonly validator: string;
-  readonly accumulatorRoot: string;
   readonly difficulty: number;
 }
 
@@ -50,10 +48,10 @@ export interface AccountInterface<T = AddressClass | AddressInterface> {
   readonly address: T;
 }
 
-export interface Transaction<Taddress = AddressClass | AddressInterface> {
+export interface Transaction { /// I'll be removing generics for transaction
   readonly nonce: number;
-  readonly sender: Taddress;
-  readonly recipient: Taddress;
+  readonly sender: AddressInterface;
+  readonly recipient: AddressInterface;
   readonly token: Token;
   readonly value: number;
   readonly gasfee: number;
@@ -63,17 +61,18 @@ export interface Transaction<Taddress = AddressClass | AddressInterface> {
   readonly txSecretDiff: number;
 }
 
-export interface VerifiedTransaction<Taddress = AddressClass | AddressInterface> {
+export interface VerifiedTransaction {
   readonly nonce: number;
-  readonly sender: Taddress;
-  readonly recipient: Taddress;
+  readonly sender: AddressInterface;
+  readonly recipient: AddressInterface;
   readonly token: Token;
   readonly value: number;
   readonly gasfee: number;
   readonly txHash: string;
   readonly signature: Signature;
   readonly txSecret: string;
-  readonly txSecretDiff: number;
+  readonly txSecretDiff: number; /// Transaction secret difficulty
+  readonly txSecretSolved: string;
   readonly blockIndex: number;
 }
 
