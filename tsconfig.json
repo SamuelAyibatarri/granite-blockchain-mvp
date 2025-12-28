@@ -3,6 +3,7 @@
     "module": "commonjs",            
     "outDir": "./dist",              
     "moduleResolution": "node",       
+    "ignoreDeprecations": "6.0",
     "esModuleInterop": true,          
     "forceConsistentCasingInFileNames": true, 
 

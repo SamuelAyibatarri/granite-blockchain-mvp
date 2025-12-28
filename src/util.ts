@@ -87,7 +87,7 @@ const verifyTxHash = (transaction: Interfaces.Transaction): boolean => {
 }
 
 /// Write to a file
-function writeFile(filePath: string, data: object): void {
+export function writeFile(filePath: string, data: object): void {
   const sData = JSON.stringify(data, null, 2);
   try {
     writeFileSync(filePath, sData, 'utf-8');

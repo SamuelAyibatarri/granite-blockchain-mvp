@@ -50,7 +50,7 @@ const calculateHashForTransaction = (sender: AddressInterface, recipient: Addres
   return result;
 }
 
-const verifyTxHash = (transaction: Transaction<AddressInterface>): boolean => {
+export const verifyTxHash = (transaction: Transaction): boolean => {
   let storedTxHash: string = transaction.txHash;
   let calculatedTxHash: string = calculateHashForTransaction(transaction.sender, transaction.recipient, transaction.token, transaction.value, transaction.gasfee);
   return storedTxHash === calculatedTxHash;
@@ -120,7 +120,7 @@ function createWallet() {
   return;
 }
 
-function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,): Transaction<AddressInterface> {
+function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,): Transaction {
   const wallet_data = readFile(WALLET_PATH, "WD") as WalletData;
   const unverified_transactions_pool = readFile(UNVERIFIED_TRANSACTIONS_PATH, "UTP") as UnverifiedTransactionPoolInterface;
   if (wallet_data.accountDetails.address.balance < amountToSend) {
@@ -130,7 +130,7 @@ function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,)
   const newReceiverBalance = recipientAddr.balance + amountToSend;
   const transactionHash = calculateHashForTransaction(wallet_data.accountDetails.address, recipientAddr, NATIVE_TOKEN, amountToSend, GAS_FEE);
   const transactionSignature = signTx(transactionHash, wallet_data.accountDetails.privateKeyHex);
-  const transaction: Transaction<AddressInterface> = {
+  const transaction: Transaction = {
     sender: {
       publicKeyHex: wallet_data.accountDetails.address.publicKeyHex,
       nonce: wallet_data.accountDetails.address.nonce,
@@ -176,7 +176,7 @@ function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,)
   return transaction;
 }
 
-const verifyTxSignature = (txHash: string, publicKeyHex: string, signature: { r: string, s: string }): boolean => {
+export const verifyTxSignature = (txHash: string, publicKeyHex: string, signature: { r: string, s: string }): boolean => {
   const key = ellipticCurve.keyFromPublic(publicKeyHex, 'hex');
   return key.verify(txHash, signature);
 };
@@ -188,8 +188,8 @@ const verifyBalanceFromTransactionHistory = (): boolean => {
   const wallet_balance = wallet_data.accountDetails.address.balance;
 
   /// Verify transaction hashes
-  const unverifiedTransactionsOut = (wallet_data.transactionHistory.TxOut as Transaction<AddressInterface>[]).map(_ => verifyTxHash(_)).filter(_ => _ === false);
-  const unverifiedTransactionsIn = (wallet_data.transactionHistory.TxIN as Transaction<AddressInterface>[]).map(_ => verifyTxHash(_)).filter(_ => _ === false);
+  const unverifiedTransactionsOut = (wallet_data.transactionHistory.TxOut as Transaction[]).map(_ => verifyTxHash(_)).filter(_ => _ === false);
+  const unverifiedTransactionsIn = (wallet_data.transactionHistory.TxIN as Transaction[]).map(_ => verifyTxHash(_)).filter(_ => _ === false);
 
   if (unverifiedTransactionsIn.length > 0 || unverifiedTransactionsOut.length > 0) {
     console.error("Error: You have transactions with unverified transaction hashes and as such your entire transaction history is likely false");
@@ -197,8 +197,8 @@ const verifyBalanceFromTransactionHistory = (): boolean => {
   }
 
   // Verify transaciton signatures
-  const unverifiedTransactionsSigOut = (wallet_data.transactionHistory.TxOut as Transaction<AddressInterface>[]).map(_ => verifyTxSignature(_.txHash, _.sender.publicKeyHex, _.signature)).filter(_ => _ === false);
-  const unverifiedTransactionsSigIn = (wallet_data.transactionHistory.TxIN as Transaction<AddressInterface>[]).map(_ => verifyTxSignature(_.txHash, _.sender.publicKeyHex, _.signature)).filter(_ => _ === false);
+  const unverifiedTransactionsSigOut = (wallet_data.transactionHistory.TxOut as Transaction[]).map(_ => verifyTxSignature(_.txHash, _.sender.publicKeyHex, _.signature)).filter(_ => _ === false);
+  const unverifiedTransactionsSigIn = (wallet_data.transactionHistory.TxIN as Transaction[]).map(_ => verifyTxSignature(_.txHash, _.sender.publicKeyHex, _.signature)).filter(_ => _ === false);
 
   if (unverifiedTransactionsSigIn.length > 0 || unverifiedTransactionsSigOut.length > 0) {
     console.error("Error: You have transactions with unverified transaction hashes and as such your entire transaction history is likely false");
