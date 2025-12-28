@@ -81,6 +81,7 @@ app.post('/mintTransaction', async (c) => {
   try {
     lTD.pool.push(formData);
     writeFile(UNVERIFIED_TRANSACTIONS_PATH, lTD);
+    return c.json({success: true}, 200);
   } catch (error) {
    if (error instanceof Error) return c.json({success: false, error: error.message}, 500);
    return c.json({success: false, error: "An unknown error occured"}, 500); 
