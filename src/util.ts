@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync, existsSync, statSync } from 'fs';
 import * as Interfaces from './interfaces';
+import * as Schemas from './zod'; 
 import { createHash, randomBytes } from 'node:crypto';
 import { ec } from 'elliptic';
 import * as CONSTANTS from './constants';
@@ -9,62 +10,65 @@ const ellipticCurve = new ec('secp256k1');
 /// Read data from a file
 export function readFile(filePath: string, ft: "WD" | "UTP" | "BD"): Interfaces.WalletData | Interfaces.UnverifiedTransactionPoolInterface | Interfaces.Blockchain {
   if (!filePath && typeof (filePath) != "string") throw new Error("Enter a valid file path");
-  if (ft != "WD" && ft != "UTP" && ft != "BD") throw new Error("Invalid ft"); /// What is ft?? It is the type of file you want to view, WD -> Wallet Data, UTP -> Unverified Transaction Pool, BD -> Blockchain Data
-  let data: string;
-  if (!checkIfFileExists(filePath)) throw new Error("No such file exists in the path you specified");
-  if (checkIfFileIsEmpty(filePath)) {
+  if (ft != "WD" && ft != "UTP" && ft != "BD") throw new Error("Invalid ft");
 
+  if (!checkIfFileExists(filePath)) throw new Error("No such file exists in the path you specified");
+  
+  /// Return default empty structures if file is empty
+  if (checkIfFileIsEmpty(filePath)) {
     switch (ft) {
       case "WD":
-        let wd: Interfaces.WalletData = {
+        return {
           accountDetails: {
             privateKeyHex: "",
-            address: {
-              publicKeyHex: "",
-              balance: 0,
-              nonce: 0
-            }
+            address: { publicKeyHex: "", balance: 0, nonce: 0 }
           },
-          transactionHistory: {
-            TxIN: [],
-            TxOut: []
-          }
-        }
-        return wd;
+          transactionHistory: { TxIN: [], TxOut: [] }
+        } as Interfaces.WalletData;
 
       case "UTP":
-        let utp: Interfaces.UnverifiedTransactionPoolInterface = {
-          pool: []
-        }
-        return utp;
+        return { pool: [] } as Interfaces.UnverifiedTransactionPoolInterface;
 
       case 'BD':
-        let bd: Interfaces.Blockchain = {
+        return {
           blocks: [CONSTANTS.genesisBlock],
-          stateRoot: "place-holder-roor", /// Warning: -> Playceholder for now, update later
+          stateRoot: "place-holder-roor",
           state: {
             chainLength: 1,
             chainSize: 1,
             nativeToken: CONSTANTS.NATIVE_TOKEN,
             cumulativeDifficulty: 1,
-          } /// Warning: -> Everything is a placeholder
-        }
-
+          }
+        } as Interfaces.Blockchain;
+      
       default:
-      /// does nothing obviously
+        throw new Error("Unreachable default case in empty file check");
     }
   }
+
   try {
-    data = readFileSync(filePath, 'utf-8');
+    const fileContent = readFileSync(filePath, 'utf-8');
+    const parsedData = JSON.parse(fileContent);
+
+    /// Validate the parsed data against the Schema before returning
+    switch (ft) {
+      case "WD":
+        return Schemas.WalletDataSchema.parse(parsedData);
+      case "UTP":
+        return Schemas.UnverifiedTransactionPoolInterfaceSchema.parse(parsedData);
+      case "BD":
+        return Schemas.BlockchainSchema.parse(parsedData);
+      default:
+        throw new Error("Invalid file type provided during validation");
+    }
+
   } catch (error) {
-    console.error("Error reading file: ", error);
+    console.error(`Error reading or validating ${ft} file:`, error);
     throw error;
   }
-  return JSON.parse(data)
 }
 
-/// Sign transactions
-
+/// Sign transactions 
 export const signTx = (txHash: string, privKeyHex: string): Interfaces.Signature => {
   const key = ellipticCurve.keyFromPrivate(privKeyHex, 'hex');
   const signature = key.sign(txHash, { canonical: true });
@@ -74,6 +78,7 @@ export const signTx = (txHash: string, privKeyHex: string): Interfaces.Signature
     s: signature.s.toString(16),
   };
 };
+
 
 const calculateHashForTransaction = (sender: Interfaces.AddressInterface, recipient: Interfaces.AddressInterface, token: Interfaces.Token, value: number, gasfee: number): string => {
   const result: string = createHash('sha256').update(sender.publicKeyHex + sender.balance + recipient.publicKeyHex + recipient.balance + token.tokenId + value + gasfee).digest('hex');
@@ -87,16 +92,30 @@ const verifyTxHash = (transaction: Interfaces.Transaction): boolean => {
 }
 
 /// Write to a file
-export function writeFile(filePath: string, data: object): void {
-  const sData = JSON.stringify(data, null, 2);
+export function writeFile(filePath: string, data: object, ft: "WD" | "UTP" | "BD"): void {
   try {
+    switch (ft) {
+      case "WD":
+        Schemas.WalletDataSchema.parse(data);
+        break;
+      case "UTP":
+        Schemas.UnverifiedTransactionPoolInterfaceSchema.parse(data);
+        break;
+      case "BD":
+        Schemas.BlockchainSchema.parse(data);
+        break;
+      default:
+        throw new Error("Invalid file type provided for writing");
+    }
+
+    const sData = JSON.stringify(data, null, 2);
     writeFileSync(filePath, sData, 'utf-8');
+    
   } catch (error) {
-    console.error("Error writing file: ", error);
-    throw error
+    console.error(`Error validating or writing ${ft} file: `, error);
+    throw error;
   }
 }
-
 
 /// Check if a file exists
 export function checkIfFileExists(filePath: string): boolean {

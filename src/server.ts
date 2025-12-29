@@ -80,7 +80,7 @@ app.post('/mintTransaction', async (c) => {
   if (tE) return c.json({success: false, error: "Transaction already exists"}, 400);
   try {
     lTD.pool.push(formData);
-    writeFile(UNVERIFIED_TRANSACTIONS_PATH, lTD);
+    writeFile(UNVERIFIED_TRANSACTIONS_PATH, lTD, "UTP");
     return c.json({success: true}, 200);
   } catch (error) {
    if (error instanceof Error) return c.json({success: false, error: error.message}, 500);
