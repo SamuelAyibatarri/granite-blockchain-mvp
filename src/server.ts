@@ -1,33 +1,36 @@
 import { Hono } from 'hono';
-import { readFile, checkIfFileExists, checkIfFileIsEmpty, writeFile } from './util'
-import { mintBlock, isValidNewBlock, getLatestBlock } from './main';
+import * as Util from './util'
+import { mintBlock, getLatestBlock, updateChain } from './main';
 import { BLOCKCHAIN_PATH, UNVERIFIED_TRANSACTIONS_PATH, WALLET_PATH } from './constants';
 import * as Interfaces from './interfaces'
 import * as Wallet from "./wallet";
+import { success, z } from 'zod'
+import { zValidator } from '@hono/zod-validator'
+import * as ZodSchema from "./zod";
 
 const app = new Hono();
 
 /// ::::::::: Helpers :::::::::: 
 
 async function getLocalBlockchainData() {
-  if (!checkIfFileExists(BLOCKCHAIN_PATH)) throw new Error("Blockchain file does not exist locally");
-  if (checkIfFileIsEmpty(BLOCKCHAIN_PATH)) throw new Error("Local blockchain record is empty");
-  const d = readFile(BLOCKCHAIN_PATH, "BD");
+  if (!Util.checkIfFileExists(BLOCKCHAIN_PATH)) throw new Error("Blockchain file does not exist locally");
+  if (Util.checkIfFileIsEmpty(BLOCKCHAIN_PATH)) throw new Error("Local blockchain record is empty");
+  const d = Util.readFile(BLOCKCHAIN_PATH, "BD");
   return d;
 }
 
 async function getLocalTransactionData() {
-  if (!checkIfFileExists(WALLET_PATH)) throw new Error("Wallet file does not exist locally");
-  if (checkIfFileIsEmpty(WALLET_PATH)) throw new Error("Local transaction record is empty");
-  const d = readFile(WALLET_PATH, "WD") as Interfaces.WalletData
+  if (!Util.checkIfFileExists(WALLET_PATH)) throw new Error("Wallet file does not exist locally");
+  if (Util.checkIfFileIsEmpty(WALLET_PATH)) throw new Error("Local transaction record is empty");
+  const d = Util.readFile(WALLET_PATH, "WD") as Interfaces.WalletData
   delete (d as { accountDetails?: {} }).accountDetails /// delete any sensitive data before sending it
   return (d.transactionHistory) /// extra check to make sure that sensitive data is not sent
 }
 
 async function getLocalUnverifiedTransactionData() {
-  if (!checkIfFileExists(UNVERIFIED_TRANSACTIONS_PATH)) throw new Error("Wallet file does not exist locally");
-  if (checkIfFileIsEmpty(UNVERIFIED_TRANSACTIONS_PATH)) throw new Error("Local transaction record is empty");
-  const d = readFile(UNVERIFIED_TRANSACTIONS_PATH, "UTP") as Interfaces.UnverifiedTransactionPoolInterface
+  if (!Util.checkIfFileExists(UNVERIFIED_TRANSACTIONS_PATH)) throw new Error("Wallet file does not exist locally");
+  if (Util.checkIfFileIsEmpty(UNVERIFIED_TRANSACTIONS_PATH)) throw new Error("Local transaction record is empty");
+  const d = Util.readFile(UNVERIFIED_TRANSACTIONS_PATH, "UTP") as Interfaces.UnverifiedTransactionPoolInterface
   return (d);
 }
 /// :::::::::::::: Blockchain Network Endpoints :::::::::::::::::
@@ -55,18 +58,22 @@ app.get('/transactions', async (c) => {
 });
 
 /// mint a block, receive a minted block
-app.post('/mintBlock', async (c) => { /// Reminder: -> Create a much more robust function to check the schema of the form data, also handle the logic to add the block.
-  const formdata = await c.req.json();
-  if (!formdata || typeof formdata.blockIndex === 'undefined') {
-    return c.json({ success: false, message: "Invalid block format" }, 400);
-  }
+app.post('/mintBlock', zValidator('json', ZodSchema.BlockSchema),async (c) => { /// Reminder: -> Create a much more robust function to check the schema of the form data, also handle the logic to add the block.
+  const formdata = await c.req.valid('json');  //TODO -> Add validation of block before adding to unverified blocksrtyui
   try {
-    const newBlock: Interfaces.Block = await mintBlock();
-
+    const latestBlock: Interfaces.Block = Util.getLatestBlock();
+    ZodSchema.BlockSchema.parse(latestBlock)
+    if (Util.verifyBlock(formdata, Util.getLatestBlock())) {
+      updateChain(formdata);
+      return c.json({success: true}, 200);
+    }
+    return c.json({success: false, error: "Block was invalid"}, 400);
   } catch (error) {
-
+    if (error instanceof Error) {
+      return c.json({success: false, error: error.message});
+    }
+    return c.json({success: false, error: "An unknown error occurred"});
   }
-
 });
 
 /// mint a transaction
@@ -80,7 +87,7 @@ app.post('/mintTransaction', async (c) => {
   if (tE) return c.json({success: false, error: "Transaction already exists"}, 400);
   try {
     lTD.pool.push(formData);
-    writeFile(UNVERIFIED_TRANSACTIONS_PATH, lTD, "UTP");
+    Util.writeFile(UNVERIFIED_TRANSACTIONS_PATH, lTD, "UTP");
     return c.json({success: true}, 200);
   } catch (error) {
    if (error instanceof Error) return c.json({success: false, error: error.message}, 500);

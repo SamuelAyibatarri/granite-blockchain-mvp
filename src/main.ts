@@ -1,3 +1,4 @@
+import { BlockchainSchema } from './zod';
 // import CryptoJS from 'crypto-js';
 import { createHash } from 'node:crypto';
 import { genesisSender } from './data.js';
@@ -7,6 +8,7 @@ import type * as Interfaces from './interfaces.ts'
 import { getUnverifiedTransactionPool, selectRandomTransaction } from './transactionPool.js';
 import { guessTxnSecret } from './wallet.js';
 import * as CONSTANTS from "./constants"
+import * as ZodSchema  from './zod';
 
 // CONSTANTS
 
@@ -42,40 +44,25 @@ export function getLatestBlock(): Interfaces.Block {
   return b.blocks[0] as Interfaces.Block; /// Reminder: -> Theres an error because ts thinks b could be undefined, but the readFile function should always return a blockchain with the genesis block(If no transaction exists)
 }
 
-export const isValidNewBlock = (newBlock: Interfaces.Block, previousBlock: Interfaces.Block): boolean => {
-
-  if (previousBlock.blockIndex + 1 !== newBlock.blockIndex) {
-    console.log('Invalid Index');
-    return false;
-  } else if (previousBlock.currentBlockHash !== newBlock.prevBlockHash) {
-    console.log('invalid previoushash');
-    return false;
-  } else if (calculateHashForBlock(newBlock) !== newBlock.currentBlockHash) {
-    console.log(typeof (newBlock.currentBlockHash) + '' + typeof calculateHashForBlock(newBlock));
-    console.log('invalid hash; ' + calculateHashForBlock(newBlock) + '' + newBlock.currentBlockHash);
-    return false;
-  }
-  return true;
-};
-
-
-const isValidChain = (blockchainToValidate: Interfaces.Block[]): boolean => {
+const isValidChain = (blockchain: Interfaces.Blockchain): boolean => {
   const isValidGenesis = (block: Interfaces.Block | undefined): boolean => {
     if (!block) return false;
     return JSON.stringify(block) === JSON.stringify(CONSTANTS.genesisBlock);
   };
 
-  if (!isValidGenesis(blockchainToValidate[0])) {
+  if (!isValidGenesis(blockchain.blocks[0])) {
     return false;
   }
 
-  for (let i = 1; i < blockchainToValidate.length; i++) {
-    const currentBlock = blockchainToValidate[i];
-    const prevBlock = blockchainToValidate[i - 1];
+  /// TODO -> Implement other functions to calculate and verify blockchain state
+
+  for (let i = 1; i < blockchain.blocks.length; i++) {
+    const currentBlock = blockchain.blocks[i];
+    const prevBlock = blockchain.blocks[i - 1];
 
     if (!currentBlock || !prevBlock) return false;
 
-    if (!isValidNewBlock(currentBlock, prevBlock)) {
+    if (!Util.verifyBlock(currentBlock, prevBlock)) {
       return false;
     }
   }
@@ -84,18 +71,45 @@ const isValidChain = (blockchainToValidate: Interfaces.Block[]): boolean => {
 };
 
 
-// const replaceChain = (newBlocks: Block[]) => {
-//     if (isValidChain(newBlocks) && newBlocks.length > getBlockchain().length) {
-//         console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain');
-//         blockchain = newBlocks;
-//         broadcastLatest();
-//     } else {
-//         console.log('Received blockchain is invalid');
-//     }
-// }
+export const replaceChain = (newChain: Interfaces.Blockchain) => {
+  ZodSchema.BlockchainSchema.parse(newChain);
+  const localBlockchain: ZodSchema.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+
+    if (isValidChain(newChain) && newChain.blocks.length > localBlockchain.blocks.length
+     && localBlockchain.blocks.length === localBlockchain.state.chainLength
+    && localBlockchain.state.cumulativeDifficulty < newChain.state.cumulativeDifficulty) {
+        console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain');
+        Util.writeFile(CONSTANTS.BLOCKCHAIN_PATH, newChain, "BD");
+        // broadcastLatest(); I can't remember what this function was supposed to do
+    } else {
+        console.log('Received blockchain is invalid');
+    }
+}
+
+export const updateChain = (newBlock: Interfaces.Block): void => {
+  ZodSchema.BlockSchema.parse(newBlock);
+  const localBlockchain: ZodSchema.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+
+  /// Check that block doesn't already exist;
+  const blockExist: boolean = localBlockchain.blocks.some((x) => (x.currentBlockHash === newBlock.currentBlockHash) || (x.validator === newBlock.validator) || (x.timestamp === newBlock.timestamp && x.transaction.txHash === newBlock.transaction.txHash));
+  if (blockExist) {
+    throw new Error("Cannot update chain, the block already exists!");
+  }
+    if (Util.verifyBlock(newBlock, localBlockchain.blocks[localBlockchain.state.chainLength - 1] as Interfaces.Block)) {
+        console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain');
+        const updatedChain = localBlockchain;
+        updatedChain.blocks = [...localBlockchain.blocks, newBlock];
+        ZodSchema.BlockchainSchema.parse(updateChain);
+        Util.writeFile(CONSTANTS.BLOCKCHAIN_PATH, updatedChain, "BD");
+        // broadcastLatest(); I can't remember what this function was supposed to do
+    } else {
+        console.log('Received blockchain is invalid');
+    }
+}
 
 const getCurrentTimestamp = (): number => {
   const blockchain: Interfaces.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  ZodSchema.BlockchainSchema.parse(blockchain);
   let latestBlock: Interfaces.Block = blockchain.blocks[blockchain.blocks.length - 1]!;
   return latestBlock.timestamp;
 }
@@ -223,3 +237,4 @@ export const mintBlock = async (): Promise<Interfaces.Block> => {
 
   return newBlock;
 }
+

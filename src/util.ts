@@ -1,9 +1,10 @@
 import { readFileSync, writeFileSync, existsSync, statSync } from 'fs';
 import * as Interfaces from './interfaces';
-import * as Schemas from './zod'; 
+import * as ZodSchema from './zod'; 
 import { createHash, randomBytes } from 'node:crypto';
 import { ec } from 'elliptic';
 import * as CONSTANTS from './constants';
+import { verifyTxSignature } from './wallet';
 
 const ellipticCurve = new ec('secp256k1');
 
@@ -53,11 +54,11 @@ export function readFile(filePath: string, ft: "WD" | "UTP" | "BD"): Interfaces.
     /// Validate the parsed data against the Schema before returning
     switch (ft) {
       case "WD":
-        return Schemas.WalletDataSchema.parse(parsedData);
+        return ZodSchema.WalletDataSchema.parse(parsedData);
       case "UTP":
-        return Schemas.UnverifiedTransactionPoolInterfaceSchema.parse(parsedData);
+        return ZodSchema.UnverifiedTransactionPoolInterfaceSchema.parse(parsedData);
       case "BD":
-        return Schemas.BlockchainSchema.parse(parsedData);
+        return ZodSchema.BlockchainSchema.parse(parsedData);
       default:
         throw new Error("Invalid file type provided during validation");
     }
@@ -79,6 +80,12 @@ export const signTx = (txHash: string, privKeyHex: string): Interfaces.Signature
   };
 };
 
+/// Verify Transaction Secret
+const verifyTxSecret = (secretHash: string, guess: string): boolean => {
+  const guessHash = createHash('sha256').update(guess).digest('hex');
+  return guessHash === secretHash;
+}
+
 
 const calculateHashForTransaction = (sender: Interfaces.AddressInterface, recipient: Interfaces.AddressInterface, token: Interfaces.Token, value: number, gasfee: number): string => {
   const result: string = createHash('sha256').update(sender.publicKeyHex + sender.balance + recipient.publicKeyHex + recipient.balance + token.tokenId + value + gasfee).digest('hex');
@@ -96,13 +103,13 @@ export function writeFile(filePath: string, data: object, ft: "WD" | "UTP" | "BD
   try {
     switch (ft) {
       case "WD":
-        Schemas.WalletDataSchema.parse(data);
+        ZodSchema.WalletDataSchema.parse(data);
         break;
       case "UTP":
-        Schemas.UnverifiedTransactionPoolInterfaceSchema.parse(data);
+        ZodSchema.UnverifiedTransactionPoolInterfaceSchema.parse(data);
         break;
       case "BD":
-        Schemas.BlockchainSchema.parse(data);
+        ZodSchema.BlockchainSchema.parse(data);
         break;
       default:
         throw new Error("Invalid file type provided for writing");
@@ -150,6 +157,25 @@ const genKeyPair = (): { privKey: string, pubKey: string } => {
   }
 }
 
+const calculateHash = (
+  index: number,
+  previousHash: string,
+  timestamp: number,
+  difficulty: number,
+  validator: string,
+  data: Interfaces.Transaction
+): string => {
+  const dataHash = data.txHash;
+  return createHash('sha256')
+    .update(index + previousHash + timestamp + dataHash + difficulty + validator)
+    .digest('hex');
+};
+
+const calculateHashForBlock = (block: Interfaces.Block): string => {
+  const hash = calculateHash(block.blockIndex, block.prevBlockHash, block.timestamp, block.difficulty, block.validator, block.transaction); /// -> For now the block hash is calculated only using the first transaction just to deal with any errors for now
+  return hash;
+}
+
 function genUniqueNonce(): number {
   const timestamp = Date.now();
   const timestampPart = timestamp % 1000000;
@@ -176,4 +202,48 @@ export const getUserBalanceFromLocalBC = (senderPublicKeyHex: string): number =>
   });
 
   return balance;
+}
+
+export const verifyTx = (tx: ZodSchema.VerifiedTransaction | ZodSchema.Transaction, txT: "U" | "V"): boolean => {
+  if (txT === "U") {ZodSchema.TransactionSchema.parse(tx)};
+  if (txT === "V") {
+    ZodSchema.VerifiedTransactionSchema.parse(tx);
+    if (!verifyTxSecret(tx.txSecret, (tx as ZodSchema.VerifiedTransaction).txSecretSolved)) return false;
+  };
+  if (!verifyTxHash(tx) || !verifyTxSignature(tx.txHash, tx.sender.publicKeyHex, tx.signature)) {
+    return false;
+  };
+
+  const userBalanceFromLocalDB = getUserBalanceFromLocalBC(tx.sender.publicKeyHex);
+  if (userBalanceFromLocalDB < (tx.value + tx.gasfee)) return false;
+  return true;
+}
+
+
+
+export const verifyBlock = (block: ZodSchema.Block, prevBlock: ZodSchema.Block): boolean => {
+  ZodSchema.BlockSchema.parse(block);
+  const blockChain: Interfaces.Blockchain = readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  ZodSchema.BlockSchema.parse(prevBlock);
+
+  if (prevBlock.blockIndex + 1 !== block.blockIndex) {
+    console.log('Invalid Index');
+    return false;
+  } else if (prevBlock.currentBlockHash !== block.prevBlockHash) {
+    console.log('invalid previoushash');
+    return false;
+  } else if (calculateHashForBlock(block) !== block.currentBlockHash) {
+    console.log(typeof (block.currentBlockHash) + '' + typeof calculateHashForBlock(block));
+    console.log('invalid hash; ' + calculateHashForBlock(block) + '' + block.currentBlockHash);
+    return false;
+  }
+
+  if (!verifyTx(block.transaction, "V")) return false;
+  return true;
+}
+
+export function getLatestBlock(): Interfaces.Block {
+  const b: Interfaces.Blockchain = readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  //@ts-ignore
+  return b.blocks[0] as Interfaces.Block; /// Reminder: -> Theres an error because ts thinks b could be undefined, but the readFile function should always return a blockchain with the genesis block(If no transaction exists)
 }
