@@ -9,6 +9,8 @@ export const UNVERIFIED_TRANSACTIONS_PATH: string = "blockchain/unverified_trans
 
 /// :::::::::::::::::: Values ::::::::::::::::::::::
 export const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+export const MAX_DIFFICULTY: 16 = 16;
+export const MIN_DIFFICULTY: 4 = 4;
 
 export const NATIVE_TOKEN: Interfaces.Token = {
   tokenId: 'd',

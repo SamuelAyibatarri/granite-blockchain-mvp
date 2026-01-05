@@ -8,16 +8,15 @@ import { readFileSync, writeFileSync, existsSync, statSync } from 'fs';
 import * as path from 'path';
 import { read } from 'node:fs';
 import baseX from 'base-x'
-import { WALLET_PATH, BLOCKCHAIN_PATH, BASE62, UNVERIFIED_TRANSACTIONS_PATH } from './constants.js'
+import { WALLET_PATH, BLOCKCHAIN_PATH, BASE62, UNVERIFIED_TRANSACTIONS_PATH, MAX_DIFFICULTY, MIN_DIFFICULTY } from './constants.js'
 import { readFile, checkIfFileExists, checkIfFileIsEmpty } from './util';
+import { getDifficulty } from './main.js';
 const ellipticCurve = new ec('secp256k1');
 
 /// CONSTANTS 
 
 const DEFAULT_BALANCE: number = 0;
-const MAX_DIFFICULTY: 16 = 16;
-const MIN_DIFFICULTY: 4 = 4;
-const CURRENT_DIFFICULTY: number = 4
+const CURRENT_DIFFICULTY: number = getDifficulty();
 const GAS_FEE: number = 1;
 const NATIVE_TOKEN: Token = {
   tokenId: 'd',

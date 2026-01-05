@@ -1,14 +1,15 @@
-import { BlockchainSchema } from './zod';
+import { BlockchainSchema, Transaction } from './zod';
 // import CryptoJS from 'crypto-js';
 import { createHash } from 'node:crypto';
 import { genesisSender } from './data.js';
 import * as Util from './util'
 import { ec } from 'elliptic';
-import type * as Interfaces from './interfaces.ts'
+import * as Interfaces from "./interfaces.js"
 import { getUnverifiedTransactionPool, selectRandomTransaction } from './transactionPool.js';
 import { guessTxnSecret } from './wallet.js';
 import * as CONSTANTS from "./constants"
-import * as ZodSchema  from './zod';
+import * as ZodSchema from './zod';
+import { string } from 'zod';
 
 // CONSTANTS
 
@@ -75,15 +76,15 @@ export const replaceChain = (newChain: Interfaces.Blockchain) => {
   ZodSchema.BlockchainSchema.parse(newChain);
   const localBlockchain: ZodSchema.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
 
-    if (isValidChain(newChain) && newChain.blocks.length > localBlockchain.blocks.length
-     && localBlockchain.blocks.length === localBlockchain.state.chainLength
+  if (isValidChain(newChain) && newChain.blocks.length > localBlockchain.blocks.length
+    && localBlockchain.blocks.length === localBlockchain.state.chainLength
     && localBlockchain.state.cumulativeDifficulty < newChain.state.cumulativeDifficulty) {
-        console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain');
-        Util.writeFile(CONSTANTS.BLOCKCHAIN_PATH, newChain, "BD");
-        // broadcastLatest(); I can't remember what this function was supposed to do
-    } else {
-        console.log('Received blockchain is invalid');
-    }
+    console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain');
+    Util.writeFile(CONSTANTS.BLOCKCHAIN_PATH, newChain, "BD");
+    // broadcastLatest(); I can't remember what this function was supposed to do
+  } else {
+    console.log('Received blockchain is invalid');
+  }
 }
 
 export const updateChain = (newBlock: Interfaces.Block): void => {
@@ -95,16 +96,17 @@ export const updateChain = (newBlock: Interfaces.Block): void => {
   if (blockExist) {
     throw new Error("Cannot update chain, the block already exists!");
   }
-    if (Util.verifyBlock(newBlock, localBlockchain.blocks[localBlockchain.state.chainLength - 1] as Interfaces.Block)) {
-        console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain');
-        const updatedChain = localBlockchain;
-        updatedChain.blocks = [...localBlockchain.blocks, newBlock];
-        ZodSchema.BlockchainSchema.parse(updateChain);
-        Util.writeFile(CONSTANTS.BLOCKCHAIN_PATH, updatedChain, "BD");
-        // broadcastLatest(); I can't remember what this function was supposed to do
-    } else {
-        console.log('Received blockchain is invalid');
-    }
+  if (Util.verifyBlock(newBlock, localBlockchain.blocks[localBlockchain.state.chainLength - 1] as Interfaces.Block)) {
+    console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain');
+    const updatedChain = localBlockchain;
+    updatedChain.blocks = [...localBlockchain.blocks, newBlock];
+    ZodSchema.BlockchainSchema.parse(updateChain);
+    Util.writeFile(CONSTANTS.BLOCKCHAIN_PATH, updatedChain, "BD");
+    /// broadcastLatest(); I can't remember what this function was supposed to do
+    /// Also updating the chain should subsequently update the state of the blockchain, currently I don't do that
+  } else {
+    console.log('Received blockchain is invalid');
+  }
 }
 
 const getCurrentTimestamp = (): number => {
@@ -128,7 +130,7 @@ const getCurrentTimestamp = (): number => {
 //     }
 // };
 
-const getDifficulty = (): number => {
+export const getDifficulty = (): number => {
   const blockchain: Interfaces.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
   if (!blockchain || blockchain.blocks.length === 0) {
     throw new Error("Blockchain is empty"); /// -> This should theoretically never run
@@ -137,7 +139,10 @@ const getDifficulty = (): number => {
   const latestBlock: Interfaces.Block = blockchain.blocks[blockchain.blocks.length - 1]!; /// Reminder: -> I'm just now realising that I had already defined a function for this, SMH
 
   if (latestBlock.blockIndex % DIFFICULTY_ADJUSTMENT_INTERVAL === 0 && latestBlock.blockIndex !== 0) {
-    return getAdjustedDifficulty(latestBlock, blockchain);
+    const output: number = getAdjustedDifficulty(latestBlock, blockchain);
+    if (output < CONSTANTS.MIN_DIFFICULTY) return CONSTANTS.MIN_DIFFICULTY;
+    if (output > CONSTANTS.MAX_DIFFICULTY) return CONSTANTS.MAX_DIFFICULTY;
+    return Math.ceil(output);
   } else {
     return latestBlock.difficulty;
   }
@@ -214,13 +219,15 @@ export const mintBlock = async (): Promise<Interfaces.Block> => {
     blockIndex: nextIndex
   };
 
-  const validator = genesisSender; /// Should be the current node address not miner, I'll add the update later
+  const walletData: Interfaces.WalletData = Util.readFile(CONSTANTS.WALLET_PATH, "WD") as Interfaces.WalletData;
+  ZodSchema.WalletDataSchema.parse(walletData);
+  const validator = walletData.accountDetails.address; 
 
   const hash = calculateHash(
     nextIndex,
     prevBlock.currentBlockHash,
     timestamp,
-    7, /// Difficulty (hardcoded for now, it should be the same value as transaction difficulty)
+    verifiedTransaction.txSecretDiff, 
     validator.publicKeyHex,
     verifiedTransaction
   );
@@ -232,9 +239,15 @@ export const mintBlock = async (): Promise<Interfaces.Block> => {
     transaction: verifiedTransaction,
     timestamp: timestamp,
     validator: validator.publicKeyHex,
-    difficulty: 7 /// hardcoded for now
+    difficulty: verifiedTransaction.txSecretDiff
   }
 
+  /// Clean unverified transactions pool
+  const uTD: Interfaces.UnverifiedTransactionPoolInterface = Util.readFile(CONSTANTS.UNVERIFIED_TRANSACTIONS_PATH, "UTP") as Interfaces.UnverifiedTransactionPoolInterface;
+  ZodSchema.UnverifiedTransactionPoolInterfaceSchema.parse(uTD);
+  
+  uTD.pool = uTD.pool.filter(_ => _.txHash === transaction.txHash);
+  Util.writeFile(CONSTANTS.UNVERIFIED_TRANSACTIONS_PATH, uTD, "UTP");
   return newBlock;
 }
 

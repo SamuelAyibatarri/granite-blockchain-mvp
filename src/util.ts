@@ -204,7 +204,7 @@ export const getUserBalanceFromLocalBC = (senderPublicKeyHex: string): number =>
   return balance;
 }
 
-export const verifyTx = (tx: ZodSchema.VerifiedTransaction | ZodSchema.Transaction, txT: "U" | "V"): boolean => {
+export const verifyTx = (tx: ZodSchema.VerifiedTransaction | ZodSchema.Transaction, txT: "U" | "V"): boolean => { /// "U" -> Unverified , "V" -> Verified
   if (txT === "U") {ZodSchema.TransactionSchema.parse(tx)};
   if (txT === "V") {
     ZodSchema.VerifiedTransactionSchema.parse(tx);

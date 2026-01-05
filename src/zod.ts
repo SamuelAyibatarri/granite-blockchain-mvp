@@ -99,7 +99,6 @@ export const BlockchainSchema = z.object({
   state: blockchainStateSchema,
 });
 
-// 5. Exported Types (Optional: Inference)
 export type Signature = z.infer<typeof SignatureSchema>;
 export type Token = z.infer<typeof TokenSchema>;
 export type AddressInterface = z.infer<typeof AddressInterfaceSchema>;

@@ -57,22 +57,22 @@ app.get('/transactions', async (c) => {
   }
 });
 
-/// mint a block, receive a minted block
-app.post('/mintBlock', zValidator('json', ZodSchema.BlockSchema),async (c) => { /// Reminder: -> Create a much more robust function to check the schema of the form data, also handle the logic to add the block.
-  const formdata = await c.req.valid('json');  //TODO -> Add validation of block before adding to unverified blocksrtyui
+/// receive a minted block
+app.post('/receiveBlock', zValidator('json', ZodSchema.BlockSchema), async (c) => { /// Reminder: -> Create a much more robust function to check the schema of the form data, also handle the logic to add the block.
+  const formdata = c.req.valid('json');  //TODO -> Add validation of block before adding to unverified blocksrtyui
   try {
     const latestBlock: Interfaces.Block = Util.getLatestBlock();
     ZodSchema.BlockSchema.parse(latestBlock)
     if (Util.verifyBlock(formdata, Util.getLatestBlock())) {
       updateChain(formdata);
-      return c.json({success: true}, 200);
+      return c.json({ success: true }, 200);
     }
-    return c.json({success: false, error: "Block was invalid"}, 400);
+    return c.json({ success: false, error: "Block was invalid" }, 400);
   } catch (error) {
     if (error instanceof Error) {
-      return c.json({success: false, error: error.message});
+      return c.json({ success: false, error: error.message });
     }
-    return c.json({success: false, error: "An unknown error occurred"});
+    return c.json({ success: false, error: "An unknown error occurred" });
   }
 });
 
@@ -80,18 +80,18 @@ app.post('/mintBlock', zValidator('json', ZodSchema.BlockSchema),async (c) => { 
 app.post('/mintTransaction', async (c) => {
   const formData: Interfaces.Transaction = await c.req.json();
   const tV: boolean = Wallet.verifyTxHash(formData) && Wallet.verifyTxSignature(formData.txHash, formData.sender.publicKeyHex, formData.signature)
-  if (!tV) return c.json({success: false, error: "Invalid Transaction"}, 400);
+  if (!tV) return c.json({ success: false, error: "Invalid Transaction" }, 400);
   const lTD = await getLocalUnverifiedTransactionData();
   /// Check to ensure transaction doesn't already exist
   const tE: boolean = lTD.pool.some(_ => _.txHash === formData.txHash);
-  if (tE) return c.json({success: false, error: "Transaction already exists"}, 400);
+  if (tE) return c.json({ success: false, error: "Transaction already exists" }, 400);
   try {
     lTD.pool.push(formData);
     Util.writeFile(UNVERIFIED_TRANSACTIONS_PATH, lTD, "UTP");
-    return c.json({success: true}, 200);
+    return c.json({ success: true }, 200);
   } catch (error) {
-   if (error instanceof Error) return c.json({success: false, error: error.message}, 500);
-   return c.json({success: false, error: "An unknown error occured"}, 500); 
+    if (error instanceof Error) return c.json({ success: false, error: error.message }, 500);
+    return c.json({ success: false, error: "An unknown error occured" }, 500);
   }
 })
 
