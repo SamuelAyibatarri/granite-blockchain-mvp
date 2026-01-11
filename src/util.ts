@@ -1,10 +1,11 @@
 import { readFileSync, writeFileSync, existsSync, statSync } from 'fs';
 import * as Interfaces from './interfaces';
-import * as ZodSchema from './zod'; 
+import * as ZodSchema from './zod';
 import { createHash, randomBytes } from 'node:crypto';
 import { ec } from 'elliptic';
 import * as CONSTANTS from './constants';
 import { verifyTxSignature } from './wallet';
+import { write } from 'node:fs';
 
 const ellipticCurve = new ec('secp256k1');
 
@@ -14,7 +15,7 @@ export function readFile(filePath: string, ft: "WD" | "UTP" | "BD"): Interfaces.
   if (ft != "WD" && ft != "UTP" && ft != "BD") throw new Error("Invalid ft");
 
   if (!checkIfFileExists(filePath)) throw new Error("No such file exists in the path you specified");
-  
+
   /// Return default empty structures if file is empty
   if (checkIfFileIsEmpty(filePath)) {
     switch (ft) {
@@ -41,7 +42,7 @@ export function readFile(filePath: string, ft: "WD" | "UTP" | "BD"): Interfaces.
             cumulativeDifficulty: 1,
           }
         } as Interfaces.Blockchain;
-      
+
       default:
         throw new Error("Unreachable default case in empty file check");
     }
@@ -86,6 +87,27 @@ const verifyTxSecret = (secretHash: string, guess: string): boolean => {
   return guessHash === secretHash;
 }
 
+const updateBlockRoot = (prevRoot: string, newBlockRoot: string): string => {
+  if (typeof prevRoot !== "string") throw new Error("prevRoot must be a string");
+  if (typeof newBlockRoot !== "string") throw new Error("newBlockRoot must be a string");
+  if (prevRoot.length < 15 && newBlockRoot.length < 15) throw new Error("The roots must be invalid as they are less than the normal length");
+  const newHash: string = createHash('sha256').update(prevRoot + newBlockRoot).digest("hex");
+  return newHash;
+}
+
+const verifyBlockRoot = (rootToVerify: string): boolean => {
+  const bC: ZodSchema.Blockchain = readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  ZodSchema.BlockchainSchema.parse(bC);
+  let result: string = "";
+  for (let i = 0; i < bC.blocks.length; i++) {
+    if (i === 0) {
+      result = bC.blocks[i]?.currentBlockHash ?? "";
+      continue;
+    }
+    result = updateBlockRoot(result, bC.blocks[i]?.currentBlockHash ?? "");
+  }
+  return (rootToVerify === result);
+}
 
 const calculateHashForTransaction = (sender: Interfaces.AddressInterface, recipient: Interfaces.AddressInterface, token: Interfaces.Token, value: number, gasfee: number): string => {
   const result: string = createHash('sha256').update(sender.publicKeyHex + sender.balance + recipient.publicKeyHex + recipient.balance + token.tokenId + value + gasfee).digest('hex');
@@ -117,7 +139,7 @@ export function writeFile(filePath: string, data: object, ft: "WD" | "UTP" | "BD
 
     const sData = JSON.stringify(data, null, 2);
     writeFileSync(filePath, sData, 'utf-8');
-    
+
   } catch (error) {
     console.error(`Error validating or writing ${ft} file: `, error);
     throw error;
@@ -205,7 +227,7 @@ export const getUserBalanceFromLocalBC = (senderPublicKeyHex: string): number =>
 }
 
 export const verifyTx = (tx: ZodSchema.VerifiedTransaction | ZodSchema.Transaction, txT: "U" | "V"): boolean => { /// "U" -> Unverified , "V" -> Verified
-  if (txT === "U") {ZodSchema.TransactionSchema.parse(tx)};
+  if (txT === "U") { ZodSchema.TransactionSchema.parse(tx) };
   if (txT === "V") {
     ZodSchema.VerifiedTransactionSchema.parse(tx);
     if (!verifyTxSecret(tx.txSecret, (tx as ZodSchema.VerifiedTransaction).txSecretSolved)) return false;

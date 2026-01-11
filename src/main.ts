@@ -87,6 +87,17 @@ export const replaceChain = (newChain: Interfaces.Blockchain) => {
   }
 }
 
+export const verifyBlockchainState = (): boolean => {
+  const bC: ZodSchema.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  const bCS: ZodSchema.BlockchainState = bC.state;
+  ZodSchema.BlockchainSchema.parse(bC);
+  ZodSchema.BlockchainStateSchema.parse(bCS);
+  const lengthValid: boolean = bCS.chainLength > 0 && bCS.chainLength === bC.blocks.length;
+  const sizeValid: boolean = (bCS.chainSize / bCS.chainLength) > 0;
+  const hashValid: boolean = true; /// TODO: Update this.
+  return true; /// WARNING: don't forget to update this.
+}
+
 export const updateChain = (newBlock: Interfaces.Block): void => {
   ZodSchema.BlockSchema.parse(newBlock);
   const localBlockchain: ZodSchema.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
@@ -221,13 +232,13 @@ export const mintBlock = async (): Promise<Interfaces.Block> => {
 
   const walletData: Interfaces.WalletData = Util.readFile(CONSTANTS.WALLET_PATH, "WD") as Interfaces.WalletData;
   ZodSchema.WalletDataSchema.parse(walletData);
-  const validator = walletData.accountDetails.address; 
+  const validator = walletData.accountDetails.address;
 
   const hash = calculateHash(
     nextIndex,
     prevBlock.currentBlockHash,
     timestamp,
-    verifiedTransaction.txSecretDiff, 
+    verifiedTransaction.txSecretDiff,
     validator.publicKeyHex,
     verifiedTransaction
   );
@@ -245,7 +256,7 @@ export const mintBlock = async (): Promise<Interfaces.Block> => {
   /// Clean unverified transactions pool
   const uTD: Interfaces.UnverifiedTransactionPoolInterface = Util.readFile(CONSTANTS.UNVERIFIED_TRANSACTIONS_PATH, "UTP") as Interfaces.UnverifiedTransactionPoolInterface;
   ZodSchema.UnverifiedTransactionPoolInterfaceSchema.parse(uTD);
-  
+
   uTD.pool = uTD.pool.filter(_ => _.txHash === transaction.txHash);
   Util.writeFile(CONSTANTS.UNVERIFIED_TRANSACTIONS_PATH, uTD, "UTP");
   return newBlock;

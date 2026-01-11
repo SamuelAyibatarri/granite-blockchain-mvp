@@ -59,7 +59,7 @@ app.get('/transactions', async (c) => {
 
 /// receive a minted block
 app.post('/receiveBlock', zValidator('json', ZodSchema.BlockSchema), async (c) => { /// Reminder: -> Create a much more robust function to check the schema of the form data, also handle the logic to add the block.
-  const formdata = c.req.valid('json');  //TODO -> Add validation of block before adding to unverified blocksrtyui
+  const formdata = c.req.valid('json');
   try {
     const latestBlock: Interfaces.Block = Util.getLatestBlock();
     ZodSchema.BlockSchema.parse(latestBlock)

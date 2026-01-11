@@ -86,7 +86,7 @@ export const BlockSchema = z.object({
   difficulty: z.number(),
 });
 
-export const blockchainStateSchema = z.object({
+export const BlockchainStateSchema = z.object({
   chainLength: z.number(),
   chainSize: z.number(),
   nativeToken: TokenSchema,
@@ -96,7 +96,7 @@ export const blockchainStateSchema = z.object({
 export const BlockchainSchema = z.object({
   blocks: z.array(BlockSchema),
   stateRoot: z.string(),
-  state: blockchainStateSchema,
+  state: BlockchainStateSchema,
 });
 
 export type Signature = z.infer<typeof SignatureSchema>;
@@ -107,3 +107,4 @@ export type VerifiedTransaction = z.infer<typeof VerifiedTransactionSchema>;
 export type WalletData = z.infer<typeof WalletDataSchema>;
 export type Block = z.infer<typeof BlockSchema>;
 export type Blockchain = z.infer<typeof BlockchainSchema>;
+export type BlockchainState = z.infer<typeof BlockchainStateSchema>;
