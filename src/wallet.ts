@@ -119,22 +119,23 @@ function createWallet() {
   return;
 }
 
-function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,): Transaction {
+export const makeTransaction = (recipientAddr: AddressInterface, amountToSend: number): Transaction => {
   const wallet_data = readFile(WALLET_PATH, "WD") as WalletData;
   const unverified_transactions_pool = readFile(UNVERIFIED_TRANSACTIONS_PATH, "UTP") as UnverifiedTransactionPoolInterface;
   if (wallet_data.accountDetails.address.balance < amountToSend) {
     throw new Error(`You don't have enough ${NATIVE_TOKEN.name} to make this transaction`)
   }
   const newSenderBalance = wallet_data.accountDetails.address.balance - amountToSend - GAS_FEE;
+  const senderData = {
+    publicKeyHex: wallet_data.accountDetails.address.publicKeyHex,
+    nonce: wallet_data.accountDetails.address.nonce, // Current Nonce
+    balance: newSenderBalance // New Balance
+  };
   const newReceiverBalance = recipientAddr.balance + amountToSend;
-  const transactionHash = calculateHashForTransaction(wallet_data.accountDetails.address, recipientAddr, NATIVE_TOKEN, amountToSend, GAS_FEE);
+  const transactionHash = calculateHashForTransaction(senderData, recipientAddr, NATIVE_TOKEN, amountToSend, GAS_FEE);
   const transactionSignature = signTx(transactionHash, wallet_data.accountDetails.privateKeyHex);
   const transaction: Transaction = {
-    sender: {
-      publicKeyHex: wallet_data.accountDetails.address.publicKeyHex,
-      nonce: wallet_data.accountDetails.address.nonce,
-      balance: newSenderBalance
-    },
+    sender: senderData,
     recipient: {
       publicKeyHex: recipientAddr.publicKeyHex,
       balance: newReceiverBalance,
@@ -147,7 +148,7 @@ function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,)
     signature: transactionSignature,
     txSecret: generateTxnSecret(CURRENT_DIFFICULTY),
     txSecretDiff: CURRENT_DIFFICULTY,
-    nonce: 789
+    nonce: wallet_data.accountDetails.address.nonce,
   }
 
   const wallet_data_class = new AddressClass(wallet_data.accountDetails.address.publicKeyHex, wallet_data.accountDetails.address.balance, wallet_data.accountDetails.address.nonce);
@@ -158,7 +159,7 @@ function makeTransaction(recipientAddr: AddressInterface, amountToSend: number,)
       address: {
         publicKeyHex: wallet_data.accountDetails.address.publicKeyHex,
         balance: newSenderBalance,
-        nonce: wallet_data.accountDetails.address.nonce
+        nonce: wallet_data.accountDetails.address.nonce + 1
       }
     },
     transactionHistory: {

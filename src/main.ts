@@ -110,7 +110,6 @@ export const updateChain = (newBlock: Interfaces.Block): void => {
   }
   if (Util.verifyBlock(newBlock, localBlockchain.blocks[localBlockchain.state.chainLength - 1] as Interfaces.Block)) {
     console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain...');
-    /// broadcastLatest(); I can't remember what this function was supposed to do
     /// Functions to update the blockchain state
     if (Util.verifyBlockRoot(localBlockchain.stateRoot)) {
       const updatedChain = localBlockchain;
@@ -269,6 +268,8 @@ export const mintBlock = async (): Promise<Interfaces.Block> => {
 
   uTD.pool = uTD.pool.filter(_ => _.txHash === transaction.txHash);
   Util.writeFile(CONSTANTS.UNVERIFIED_TRANSACTIONS_PATH, uTD, "UTP");
+  /// Broadcast newly created block
+  Util.broadcastBlock(newBlock);
   return newBlock;
 }
 

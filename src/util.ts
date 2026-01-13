@@ -269,3 +269,27 @@ export function getLatestBlock(): Interfaces.Block {
   //@ts-ignore
   return b.blocks[0] as Interfaces.Block; /// Reminder: -> Theres an error because ts thinks b could be undefined, but the readFile function should always return a blockchain with the genesis block(If no transaction exists)
 }
+
+export const broadcastBlock = (newBlock: Interfaces.Block): void => {
+  ZodSchema.BlockSchema.parse(newBlock);
+  const broadcastPromises = CONSTANTS.PEERS.map(async (peerUrl) => {
+    try {
+      const response = await fetch(`${peerUrl}/receiveBlock`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(newBlock),
+      })
+
+      if (!response.ok) {
+        console.log(`Peer ${peerUrl} rejected the block.`)
+      }
+    } catch (error) {
+      console.log("Failed to broadcast block.");
+      if (error instanceof Error) {
+        console.error(`Error: ${error}`);
+      }
+    }
+  })
+}
