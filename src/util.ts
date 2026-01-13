@@ -87,7 +87,7 @@ const verifyTxSecret = (secretHash: string, guess: string): boolean => {
   return guessHash === secretHash;
 }
 
-const updateBlockRoot = (prevRoot: string, newBlockRoot: string): string => {
+export const updateBlockRoot = (prevRoot: string, newBlockRoot: string): string => {
   if (typeof prevRoot !== "string") throw new Error("prevRoot must be a string");
   if (typeof newBlockRoot !== "string") throw new Error("newBlockRoot must be a string");
   if (prevRoot.length < 15 && newBlockRoot.length < 15) throw new Error("The roots must be invalid as they are less than the normal length");
@@ -95,7 +95,7 @@ const updateBlockRoot = (prevRoot: string, newBlockRoot: string): string => {
   return newHash;
 }
 
-const verifyBlockRoot = (rootToVerify: string): boolean => {
+export const verifyBlockRoot = (rootToVerify: string): boolean => {
   const bC: ZodSchema.Blockchain = readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
   ZodSchema.BlockchainSchema.parse(bC);
   let result: string = "";

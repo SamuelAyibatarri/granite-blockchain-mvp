@@ -55,7 +55,7 @@ const isValidChain = (blockchain: Interfaces.Blockchain): boolean => {
     return false;
   }
 
-  /// TODO -> Implement other functions to calculate and verify blockchain state
+  const blockChainStateVerified: boolean = verifyBlockchainState();
 
   for (let i = 1; i < blockchain.blocks.length; i++) {
     const currentBlock = blockchain.blocks[i];
@@ -68,7 +68,7 @@ const isValidChain = (blockchain: Interfaces.Blockchain): boolean => {
     }
   }
 
-  return true;
+  return (true && blockChainStateVerified);
 };
 
 
@@ -94,13 +94,14 @@ export const verifyBlockchainState = (): boolean => {
   ZodSchema.BlockchainStateSchema.parse(bCS);
   const lengthValid: boolean = bCS.chainLength > 0 && bCS.chainLength === bC.blocks.length;
   const sizeValid: boolean = (bCS.chainSize / bCS.chainLength) > 0;
-  const hashValid: boolean = true; /// TODO: Update this.
-  return true; /// WARNING: don't forget to update this.
+  const rootValid: boolean = Util.verifyBlockRoot(bC.stateRoot);
+  return (lengthValid && sizeValid && rootValid);
 }
 
 export const updateChain = (newBlock: Interfaces.Block): void => {
   ZodSchema.BlockSchema.parse(newBlock);
   const localBlockchain: ZodSchema.Blockchain = Util.readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
+  ZodSchema.BlockchainSchema.parse(localBlockchain);
 
   /// Check that block doesn't already exist;
   const blockExist: boolean = localBlockchain.blocks.some((x) => (x.currentBlockHash === newBlock.currentBlockHash) || (x.validator === newBlock.validator) || (x.timestamp === newBlock.timestamp && x.transaction.txHash === newBlock.transaction.txHash));
@@ -108,13 +109,22 @@ export const updateChain = (newBlock: Interfaces.Block): void => {
     throw new Error("Cannot update chain, the block already exists!");
   }
   if (Util.verifyBlock(newBlock, localBlockchain.blocks[localBlockchain.state.chainLength - 1] as Interfaces.Block)) {
-    console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain');
-    const updatedChain = localBlockchain;
-    updatedChain.blocks = [...localBlockchain.blocks, newBlock];
-    ZodSchema.BlockchainSchema.parse(updateChain);
-    Util.writeFile(CONSTANTS.BLOCKCHAIN_PATH, updatedChain, "BD");
+    console.log('Recieved blockchain is valid. Replacing current blockchain with received blockchain...');
     /// broadcastLatest(); I can't remember what this function was supposed to do
-    /// Also updating the chain should subsequently update the state of the blockchain, currently I don't do that
+    /// Functions to update the blockchain state
+    if (Util.verifyBlockRoot(localBlockchain.stateRoot)) {
+      const updatedChain = localBlockchain;
+      updatedChain.blocks = [...localBlockchain.blocks, newBlock];
+      updatedChain.stateRoot = Util.updateBlockRoot(localBlockchain.stateRoot, newBlock.currentBlockHash);
+      updatedChain.state.cumulativeDifficulty = localBlockchain.state.cumulativeDifficulty + newBlock.difficulty;
+      updatedChain.state.chainLength = localBlockchain.state.chainLength + 1;
+      ///TODO: -> I've not yet implemented a way to calculate the size of each block.
+      ZodSchema.BlockchainSchema.parse(updateChain);
+      Util.writeFile(CONSTANTS.BLOCKCHAIN_PATH, updatedChain, "BD");
+    } else {
+      throw new Error("Your current local blockchain is invalid");
+      /// NOTE: -> This functiion should probably query the network to update it's blockchain data if the local blockchain is invalid.
+    };
   } else {
     console.log('Received blockchain is invalid');
   }
