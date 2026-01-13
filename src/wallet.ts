@@ -1,12 +1,8 @@
-import CryptoJS from 'crypto-js';
 import { createHash, randomBytes } from 'node:crypto';
-import crypto from 'crypto';
 import { ec } from 'elliptic';
 import type { AccountInterface, AddressInterface, Transaction, Token, Signature, WalletData, UnverifiedTransactionPoolInterface } from './interfaces.ts';
 import { AccountClass, AddressClass } from './classes.js';
 import { readFileSync, writeFileSync, existsSync, statSync } from 'fs';
-import * as path from 'path';
-import { read } from 'node:fs';
 import baseX from 'base-x'
 import { WALLET_PATH, BLOCKCHAIN_PATH, BASE62, UNVERIFIED_TRANSACTIONS_PATH, MAX_DIFFICULTY, MIN_DIFFICULTY } from './constants.js'
 import { readFile, checkIfFileExists, checkIfFileIsEmpty } from './util';
@@ -79,14 +75,6 @@ const genKeyPair = (): { privKey: string, pubKey: string } => {
   }
 }
 
-function genUniqueNonce(): number {
-  const timestamp = Date.now();
-  const timestampPart = timestamp % 1000000;
-  const randomNumber = randomBytes(2).readUInt16BE(0);
-
-  return timestampPart + randomNumber;
-}
-
 function genWallet(): WalletData {
   const hexKeyPair = genKeyPair();
   const wallet_data: WalletData = {
@@ -95,7 +83,7 @@ function genWallet(): WalletData {
       address: {
         publicKeyHex: hexKeyPair.pubKey,
         balance: DEFAULT_BALANCE,
-        nonce: genUniqueNonce()
+        nonce: 0
       }
     },
     transactionHistory: {

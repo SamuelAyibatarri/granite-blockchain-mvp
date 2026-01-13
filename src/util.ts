@@ -202,28 +202,32 @@ function genUniqueNonce(): number {
   const timestamp = Date.now();
   const timestampPart = timestamp % 1000000;
   const randomNumber = randomBytes(2).readUInt16BE(0);
-
   return timestampPart + randomNumber;
 }
 
-export const getUserBalanceFromLocalBC = (senderPublicKeyHex: string): number => {
+export const getAccountState = (addressHex: string): { balance: number, lastNonce: number } => {
   if (!checkIfFileExists(CONSTANTS.BLOCKCHAIN_PATH)) throw new Error("Block chain file doesn't exist");
   const blockchain: Interfaces.Blockchain = readFile(CONSTANTS.BLOCKCHAIN_PATH, "BD") as Interfaces.Blockchain;
-  if (blockchain.blocks.length === 0) throw new Error("The blockchain is empty")
+
   let balance = 0;
+  let lastNonce = 0;
+
   blockchain.blocks.forEach(block => {
     const tx = block.transaction;
 
-    if (tx.recipient.publicKeyHex === senderPublicKeyHex) {
+    if (tx.recipient.publicKeyHex === addressHex) {
       balance += tx.value;
     }
-
-    if (tx.sender.publicKeyHex === senderPublicKeyHex) {
+    if (tx.sender.publicKeyHex === addressHex) {
       balance -= (tx.value + tx.gasfee);
+
+      if (tx.nonce > lastNonce) {
+        lastNonce = tx.nonce;
+      }
     }
   });
 
-  return balance;
+  return { balance, lastNonce };
 }
 
 export const verifyTx = (tx: ZodSchema.VerifiedTransaction | ZodSchema.Transaction, txT: "U" | "V"): boolean => { /// "U" -> Unverified , "V" -> Verified
@@ -236,8 +240,8 @@ export const verifyTx = (tx: ZodSchema.VerifiedTransaction | ZodSchema.Transacti
     return false;
   };
 
-  const userBalanceFromLocalDB = getUserBalanceFromLocalBC(tx.sender.publicKeyHex);
-  if (userBalanceFromLocalDB < (tx.value + tx.gasfee)) return false;
+  const userState = getAccountState(tx.sender.publicKeyHex);
+  if (userState.balance < (tx.value + tx.gasfee) || tx.nonce <= userState.lastNonce) return false;
   return true;
 }
 

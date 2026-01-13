@@ -120,6 +120,10 @@ export const updateChain = (newBlock: Interfaces.Block): void => {
       ///TODO: -> I've not yet implemented a way to calculate the size of each block.
       ZodSchema.BlockchainSchema.parse(updateChain);
       Util.writeFile(CONSTANTS.BLOCKCHAIN_PATH, updatedChain, "BD");
+      const uTD = Util.readFile(CONSTANTS.UNVERIFIED_TRANSACTIONS_PATH, "UTP") as Interfaces.UnverifiedTransactionPoolInterface;
+      // Remove the transaction that was just added in the new block
+      uTD.pool = uTD.pool.filter(tx => tx.txHash !== newBlock.transaction.txHash);
+      Util.writeFile(CONSTANTS.UNVERIFIED_TRANSACTIONS_PATH, uTD, "UTP");
     } else {
       throw new Error("Your current local blockchain is invalid");
       /// NOTE: -> This functiion should probably query the network to update it's blockchain data if the local blockchain is invalid.
@@ -208,24 +212,12 @@ const calculateHashForTransaction = (sender: Interfaces.AddressInterface, recipi
   return result;
 }
 
-/// Verify Transaction
-const verifyTx = (transaction: Interfaces.Transaction): boolean => {
-  if (!verifyTxHash(transaction) || !verifyTxSignature(transaction.txHash, transaction.sender.publicKeyHex, transaction.signature)) {
-    return false;
-  };
-
-  const userBalanceFromLocalDB = Util.getUserBalanceFromLocalBC(transaction.sender.publicKeyHex);
-  if (userBalanceFromLocalDB < (transaction.value + transaction.gasfee)) return false;
-
-  return true
-}
-
 /// Mint a block
 export const mintBlock = async (): Promise<Interfaces.Block> => {
   const pool = getUnverifiedTransactionPool();
   const transaction = selectRandomTransaction(1, pool) as Interfaces.Transaction;
 
-  if (!verifyTx(transaction)) throw new Error("Invalid Transaction selected from pool");
+  if (!Util.verifyTx(transaction, "U")) throw new Error("Invalid Transaction selected from pool");
 
   const guessedTxnSecret: string = await guessTxnSecret(transaction.txSecretDiff, transaction.txSecret);
 
@@ -266,7 +258,7 @@ export const mintBlock = async (): Promise<Interfaces.Block> => {
   const uTD: Interfaces.UnverifiedTransactionPoolInterface = Util.readFile(CONSTANTS.UNVERIFIED_TRANSACTIONS_PATH, "UTP") as Interfaces.UnverifiedTransactionPoolInterface;
   ZodSchema.UnverifiedTransactionPoolInterfaceSchema.parse(uTD);
 
-  uTD.pool = uTD.pool.filter(_ => _.txHash === transaction.txHash);
+  uTD.pool = uTD.pool.filter(_ => _.txHash !== transaction.txHash);
   Util.writeFile(CONSTANTS.UNVERIFIED_TRANSACTIONS_PATH, uTD, "UTP");
   /// Broadcast newly created block
   Util.broadcastBlock(newBlock);
